@@ -1,5 +1,5 @@
-import { UserPrincipal, OAuth2AccessToken } from "../oauht2";
-import ClientSession from ".";
+import { UserPrincipal, OAuth2AccessToken } from ".";
+import OAuth2Session from "../core";
 import { string } from "prop-types";
 
 interface SaveObject {
@@ -15,7 +15,7 @@ const client = {
    secret:""
 }
 
-const DefaultClientSession: ClientSession = {
+const clientSession: OAuth2Session = {
 
     user: new UserPrincipal(),
     get isLogged(): boolean {
@@ -95,6 +95,6 @@ const DefaultClientSession: ClientSession = {
         const save = { token, version, created: this.acccessTokenCreated } as SaveObject
         sessionStorage.setItem("clientInfo", JSON.stringify(save));
     }
-}
+};
 
-export { DefaultClientSession };
+export default clientSession;

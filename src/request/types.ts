@@ -1,4 +1,4 @@
-import ClientSession, { ToastAdapter } from "../core";
+import OAuth2Session, { ToastAdapter } from "../core";
 
 export interface RequestOptions {
     clientId: string;

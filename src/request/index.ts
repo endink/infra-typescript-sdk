@@ -3,10 +3,10 @@
  * 更详细的 api 文档: https://github.com/umijs/umi-request
  */
 import { extend, RequestOptionsWithResponse, ResponseError, RequestMethod, RequestOptionsInit, RequestResponse } from 'umi-request';
-import { DefaultClientSession } from '../core/DefaultClientSession';
 import { RefreshTokenParam, OAuth2AccessToken, GrantTypes } from '../oauht2';
-import { RequestOptions } from './RequestOptions';
-import ClientSession, { ToastAdapter, ApplicationError } from '../core';
+import { RequestOptions } from './types';
+import OAuth2Session, { ToastAdapter, ApplicationError } from '../core';
+import clientSession from '../oauht2/session';
 
 const codeMessage = {
     200: '服务器成功返回请求的数据。',
@@ -81,12 +81,15 @@ export interface ExtendedRequestOptionsInit extends RequestOptionsInit {
     getResponse?: boolean,
 }
 
+const ClientSession = {
+    current: undefined as any
+};
 
 
-export function initRequest(options: RequestOptions, clientSession?: ClientSession) {
+export function initRequest(options: RequestOptions, session?: OAuth2Session) {
     const { clientId, clientSecret } = options;
-    const currentSession = clientSession || DefaultClientSession;
-    currentSession.setClient(clientId, clientSecret);
+    ClientSession.current = session || clientSession;
+    ClientSession.current.setClient(clientId, clientSecret);
     /**
  * 配置request请求时的默认参数
  */
@@ -101,12 +104,12 @@ export function initRequest(options: RequestOptions, clientSession?: ClientSessi
             op.errorHandler = (e) => { return handleError(e, options.toast, op.skipNotifyError) };
         }
 
-        if (ctx.req.options["skipAuth"] !== true && currentSession.isLogged) {
-            if (currentSession.isTokenExpired) {
+        if (ctx.req.options["skipAuth"] !== true && ClientSession.current.isLogged) {
+            if (ClientSession.current.isTokenExpired) {
                 const data: RefreshTokenParam = {
                     grant_type: GrantTypes.GRANT_TYPE_REFRESH_TOKEN,
-                    refresh_token: currentSession.accessToken!!.refresh_token || "",
-                    scope: currentSession.accessToken!!.scope
+                    refresh_token: ClientSession.current.accessToken!!.refresh_token || "",
+                    scope: ClientSession.current.accessToken!!.scope
                 };
                 //自动刷新缓存
                 const requestOptions: RequestOptionsWithResponse = {
@@ -114,13 +117,13 @@ export function initRequest(options: RequestOptions, clientSession?: ClientSessi
                     requestType: "form",
                     method: "post",
                     data: data,
-                    headers: { "Authorization": currentSession.getClientTokenHeaderValue() }
+                    headers: { "Authorization": ClientSession.current.getClientTokenHeaderValue() }
                 };
                 (requestOptions as any)["skipAuth"] = true;
                 const r = await request<OAuth2AccessToken>(options.accessTokenUrl, requestOptions);
                 if (r.response && r.response.ok) {
                     const token = r.data as OAuth2AccessToken;
-                    currentSession.saveToken(token);
+                    ClientSession.current.saveToken(token);
                 } else {
                     ctx.res = r;
                     return;
@@ -128,7 +131,7 @@ export function initRequest(options: RequestOptions, clientSession?: ClientSessi
             }
             const headers = ctx.req.options.headers || {};
             if (typeof headers["Authorization"] === "undefined") {
-                headers["Authorization"] = currentSession.getAuthTokenHeaderValue();
+                headers["Authorization"] = ClientSession.current.getAuthTokenHeaderValue();
             }
             await next();
         } else {
@@ -138,3 +141,4 @@ export function initRequest(options: RequestOptions, clientSession?: ClientSessi
 
     return request as ExtendedRequestMethod;
 }
+

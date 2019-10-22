@@ -11,13 +11,13 @@ export interface ToastAdapter {
     error(message?: string): void;
 }
 
-export default interface ClientSession {
+export default interface OAuth2Session {
     readonly clientId: string;
     readonly secret: string;
     readonly isTokenExpired: boolean;
     readonly isLogged: boolean
-    accessToken?:OAuth2AccessToken;
-    acccessTokenCreated?:number;
+    accessToken?: OAuth2AccessToken;
+    acccessTokenCreated?: number;
     user: UserPrincipal;
     getAuthTokenHeaderValue: () => string;
     getRefreshTokenHeaderValue: () => string;
@@ -25,7 +25,7 @@ export default interface ClientSession {
     clearToken: () => void;
     saveToken: (accessToken: OAuth2AccessToken) => void;
     loadToken: () => void;
-    setClient:(clientId:string, secret:string)=>void;
-  }
-  
+    setClient: (clientId: string, secret: string) => void;
+}
+
 

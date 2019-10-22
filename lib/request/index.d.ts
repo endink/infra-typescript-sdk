@@ -3,8 +3,8 @@
  * 更详细的 api 文档: https://github.com/umijs/umi-request
  */
 import { RequestMethod, RequestOptionsInit, RequestResponse } from 'umi-request';
-import { RequestOptions } from './RequestOptions';
-import ClientSession from '../core';
+import { RequestOptions } from './types';
+import OAuth2Session from '../core';
 export interface ExtendedRequestMethod<R = true> extends RequestMethod<R> {
     <T = any>(url: string, options?: ExtendedRequestOptionsInit): R extends true ? Promise<RequestResponse<T>> : Promise<T>;
 }
@@ -13,4 +13,4 @@ export interface ExtendedRequestOptionsInit extends RequestOptionsInit {
     skipNotifyError?: boolean;
     getResponse?: boolean;
 }
-export declare function initRequest(options: RequestOptions, clientSession?: ClientSession): ExtendedRequestMethod<true>;
+export declare function initRequest(options: RequestOptions, session?: OAuth2Session): ExtendedRequestMethod<true>;
