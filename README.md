@@ -92,7 +92,7 @@ export default request;
 import request from "./request";
 import { clientSession, OAuth2AccessToken, LoginParam } from "infra-sdk-core";
 
-const postLogin = async function(params: LoginParam)=> {
+const postLogin = async (params: LoginParam)=> {
   return request<OAuth2AccessToken>("/api/oauth/token", {
     method: "POST",
     data: params,
@@ -109,7 +109,7 @@ const req:LoginParam =  {
    //省略代码 
 };
 const {response, data}:{ response: Response, data: OAuth2AccessToken } = await postLogin(req);
-const error = response.ok ? undefined : (data as ApplicationError).error_description
+const error = response.ok ? undefined : (data as ApplicationError).error_description;
 // Login successfully
 if (response.ok) {
   clientSession.saveToken(data);
