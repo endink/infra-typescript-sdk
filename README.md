@@ -1,5 +1,8 @@
 # 适用于 Typescript 的前端核心服务 SDK
 
+![Hex.pm](https://img.shields.io/hexpm/l/plug.svg)
+![Npm Repository](https://raster.shields.io/npm/v/infra-sdk-core)
+
 ### 介绍
 
 - 基于 ts 用于配合 infra java 服务端开发的客户端 SDK， 自行处理 Oauth 请求、自动 refresh token。
