@@ -6,7 +6,7 @@ export interface OssOptions {
     configURL: string;
     stsTokenURL: string;
 }
-export default class Oss {
+export default class OssUtils {
     private request;
     options: OssOptions;
     constructor(request: ExtendedRequestMethod, options: OssOptions);

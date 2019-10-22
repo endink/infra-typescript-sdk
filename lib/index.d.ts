@@ -1,4 +1,5 @@
 export * from "./aliyun";
+export * from "./aliyun/oss";
 export * from "./core";
 export * from "./oauht2";
 export * from "./request";

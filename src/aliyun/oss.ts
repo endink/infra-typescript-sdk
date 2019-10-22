@@ -13,7 +13,7 @@ export interface OssOptions {
     stsTokenURL: string;
 }
 
-export default class Oss {
+export default class OssUtils {
     constructor(
         private request:ExtendedRequestMethod, 
         public options:OssOptions){
