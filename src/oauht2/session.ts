@@ -1,5 +1,5 @@
 import { UserPrincipal, OAuth2AccessToken } from ".";
-import OAuth2Session from "../core";
+import {OAuth2Session} from "../core";
 import { string } from "prop-types";
 
 interface SaveObject {
@@ -97,4 +97,4 @@ const clientSession: OAuth2Session = {
     }
 };
 
-export default clientSession;
+export {clientSession};

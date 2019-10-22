@@ -4,7 +4,7 @@
  */
 import { RequestMethod, RequestOptionsInit, RequestResponse } from 'umi-request';
 import { RequestOptions } from './types';
-import OAuth2Session from '../core';
+import { OAuth2Session } from '../core';
 export interface ExtendedRequestMethod<R = true> extends RequestMethod<R> {
     <T = any>(url: string, options?: ExtendedRequestOptionsInit): R extends true ? Promise<RequestResponse<T>> : Promise<T>;
 }

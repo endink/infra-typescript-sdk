@@ -5,8 +5,8 @@
 import { extend, RequestOptionsWithResponse, ResponseError, RequestMethod, RequestOptionsInit, RequestResponse } from 'umi-request';
 import { RefreshTokenParam, OAuth2AccessToken, GrantTypes } from '../oauht2';
 import { RequestOptions } from './types';
-import OAuth2Session, { ToastAdapter, ApplicationError } from '../core';
-import clientSession from '../oauht2/session';
+import { OAuth2Session, ToastAdapter, ApplicationError } from '../core';
+import {clientSession} from '../oauht2/session';
 
 const codeMessage = {
     200: '服务器成功返回请求的数据。',

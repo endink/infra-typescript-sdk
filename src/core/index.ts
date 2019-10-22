@@ -11,7 +11,7 @@ export interface ToastAdapter {
     error(message?: string): void;
 }
 
-export default interface OAuth2Session {
+export interface OAuth2Session {
     readonly clientId: string;
     readonly secret: string;
     readonly isTokenExpired: boolean;

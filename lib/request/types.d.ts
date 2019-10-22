@@ -4,6 +4,10 @@ export interface RequestOptions {
     clientSecret: string;
     accessTokenUrl: string;
     toast?: ToastAdapter;
-    errorDescibe?: Map<string, string>;
-    httpCodeDescribe?: Map<string, string>;
+    errorDescibe?: {
+        [key: string]: string;
+    };
+    httpCodeDescribe?: {
+        [key: string]: string;
+    };
 }

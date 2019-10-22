@@ -9,4 +9,4 @@ example/
 *.yml
 *.json
 *.log
-*.js
+webpack.config.js
