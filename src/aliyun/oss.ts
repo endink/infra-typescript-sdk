@@ -2,11 +2,14 @@ import { AliyunStsToken, AliyunOssConfig, BucketPolicy } from ".";;
 import { RequestResponse } from "umi-request";
 import OSS, { Checkpoint, MultipartUploadResult } from "ali-oss";
 import { ExtendedRequestMethod } from "../request";
+import { ApplicationError } from "../core";
 
-const aliyunContext: {
+interface AliyunContext {
     stsToken?: AliyunStsToken,
     ossConfig?: AliyunOssConfig
-} = {  };
+}
+
+const aliyunContext: AliyunContext = {};
 
 export interface OssOptions {
     configURL: string;
@@ -41,7 +44,7 @@ export class OssUtils {
         return { response: { ok: true }, data:aliyunContext.ossConfig } as RequestResponse<AliyunOssConfig>;
     }
 
-    public async getAliyunContext(): Promise<RequestResponse<{ token: AliyunStsToken, ossSettings: AliyunOssConfig }>> {
+    public async getAliyunContext(): Promise<RequestResponse<AliyunContext>> {
         if (aliyunContext.stsToken === undefined || (Number(aliyunContext.stsToken.expiration) <= Date.now().valueOf())) {
             const r = await this.request<AliyunStsToken>(this.options.stsTokenURL, {
                 method: "GET",
@@ -85,18 +88,22 @@ export class OssUtils {
             return context as any;
         }
 
-        const { token, ossSettings } = context.data
+        const { stsToken, ossConfig } = context.data
 
         const uploadOptions: OSS.MultipartUploadOptions = {
             progress,
             partSize: 100 * 1024
         };
 
-        const settings = bucketPolicy === BucketPolicy.Public ? ossSettings.public : ossSettings.public;
+        if(!stsToken || !ossConfig){
+            return { response: { ok: false }, data: { error:"oss_error", error_description:" Aliyun context was not ready."  } as ApplicationError } as any;
+        }
+
+        const settings = bucketPolicy === BucketPolicy.Public ? ossConfig.public : ossConfig.private;
         const client = new OSS({
-            accessKeyId: token.accessKeyId,
-            accessKeySecret: token.accessKeySecret,
-            stsToken: token.securityToken,
+            accessKeyId: stsToken.accessKeyId,
+            accessKeySecret: stsToken.accessKeySecret,
+            stsToken: stsToken.securityToken,
             endpoint: settings.endpoint,
             bucket: settings.bucket
         });
