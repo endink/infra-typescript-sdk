@@ -47,6 +47,19 @@ export interface OAuth2AccessToken {
     roles: string[];
 }
 
+export interface CheckTokenResult {
+    aud: string[];
+    scope: string[];
+    token_type: string;
+    two_factor_granted?: boolean,
+    user_id: string,
+    user_name: string,
+    roles: string[];
+    exp:number;
+    client_id:string;
+    active:boolean;
+}
+
 const GrantTypes = {
     GRANT_TYPE_PASSWORD: "password",
     GRANT_TYPE_AUTHORIZATION_CODE: "authorization_code",

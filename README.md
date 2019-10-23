@@ -69,7 +69,7 @@ const options:RequestOptions = {
   clientSecret: "abcdef",
   accessTokenUrl:"/api/oauth/token", //Spring 标准 Endpoint
   toast: message,
-  errorDescibe:errors
+  errorDescriber:errors
 }
 const request = initRequest(options);
 
@@ -83,23 +83,12 @@ export default request;
 import request from "./request";
 import { clientSession, OAuth2AccessToken, LoginParam } from "infra-sdk-core";
 
-const postLogin = async function(params: LoginParam)=> {
-  return request<OAuth2AccessToken>("/api/oauth/token", {
-    method: "POST",
-    data: params,
-    requestType:"form",
-    skipAuth:true,
-    skipNotifyError:true,
-    headers: { "Authorization": clientSession.getClientTokenHeaderValue() }
-  });
-};
-
 //此处省略无数代码....
 
 const req:LoginParam =  {
    //省略代码 
 };
-const {response, data}:{ response: Response, data: OAuth2AccessToken } = await postLogin(req);
+const {response, data}:{ response: Response, data: OAuth2AccessToken } = await request.login(req, { skipNotifyError:true });
 const error = response.ok ? undefined : (data as ApplicationError).error_description
 // Login successfully
 if (response.ok) {
@@ -108,6 +97,13 @@ if (response.ok) {
 
 ```
 
+> 增强特性：
+> - 1. 自动带入 bear token: 对 clientSession 调用 saveToken 后，之后的 http 请求自动带入 oauth2 的 bear token (自动添加 http header); 
+> - 2. 自动刷新 acccess token: 根据 access token 的过期时间判断是否在请求 HTTP 接口之前进行 refresh token 刷新操作; 
+> - 3. request.login 方法： 对接 spring security oauth2 标准 endpoint: /oauth/token， 登录并返回 access token;
+> - 4. request.checkToken 方法： 对接 spring security oauth2 标准 endpoint: oauth/check_token， 检查当前 token 是否有效;
+> - 5. skipNotifyError 属性: 是否使用 toast 方式来处理异常;
+> - 6. skipAuth 属性： 当设置为 true 时，1 和 2 步骤不再进行 (有时可能我们希望执行普通的 http 请求);
 
 
 #### 使用阿里云 OSS
@@ -120,10 +116,13 @@ import { OssUtils } from 'infra-sdk-core';
 const oss = new OssUtils(request, {
   configURL: "/api/oss-config",
   stsTokenURL: "api/get-oss-token" });
-
-export default oss
+//oss.fetchConfig();
+export default oss;
 
 ```
+> 建议应用程序首次启动时执行一次 fetchConfig() 函数（从后端获取 oss 配置），以加速后续请求;
+> 如果配置在前端配置，可以执行 configure() 函数
+
 上传示例
 
 ```typescript
@@ -140,6 +139,18 @@ if(response.ok){
 
 ```
 
+> BucketPolicy.Public 和 BucketPolicy.Private 区分 bucket 的访问属性（需要配合后端 infra 框架）
+
+处理 public bucket 生成访问路径 （该操作不会产生任何服务端请求）：
+
+```typescript
+import { oss } from "./oss";
+
+const src = oss.generateObjectUrl("/test/aaa.jpg")
+
+```
+
+> 注意： 出于同步编程的便捷性考虑，generateObjectUrl 不会请求从后端配置，所以该方法需要在调用之前执行过 fetchConfig 或 configure 方法， 否则返回空串 ( "" );
 
 ### 相关命令
 

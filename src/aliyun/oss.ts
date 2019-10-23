@@ -27,8 +27,8 @@ export class OssUtils {
         aliyunContext.ossConfig = config;
     }
 
-    public async fetchConfig(skipNotifyError: boolean = true): Promise<RequestResponse<AliyunOssConfig>> {
-        if (aliyunContext.ossConfig === undefined) {
+    public async fetchConfig(skipNotifyError: boolean = true, forceReload:boolean = false): Promise<RequestResponse<AliyunOssConfig>> {
+        if (aliyunContext.ossConfig === undefined || forceReload) {
             const r = await this.request<AliyunOssConfig>(this.options.configURL, {
                 method: "GET",
                 skipNotifyError
@@ -36,10 +36,10 @@ export class OssUtils {
             if (r.response.ok) {
                 aliyunContext.ossConfig = r.data;
             }
-            return r
+            return r;
         }
-        return { response: { ok: true } } as RequestResponse<AliyunOssConfig>;
-    };
+        return { response: { ok: true }, data:aliyunContext.ossConfig } as RequestResponse<AliyunOssConfig>;
+    }
 
     public async getAliyunContext(): Promise<RequestResponse<{ token: AliyunStsToken, ossSettings: AliyunOssConfig }>> {
         if (aliyunContext.stsToken === undefined || (Number(aliyunContext.stsToken.expiration) <= Date.now().valueOf())) {
@@ -59,7 +59,7 @@ export class OssUtils {
             return r as any;
         }
         return { data: aliyunContext, response: { ok: true } } as any;
-    };
+    }
 
     public generateObjectUrl(filePath: string) {
         const ossSettings = aliyunContext.ossConfig;
@@ -71,7 +71,7 @@ export class OssUtils {
             return `https://${domain}/${file}`;
         }
         return "";
-    };
+    }
 
     public ossUpload = async (
         bucketPolicy: BucketPolicy,
@@ -102,6 +102,6 @@ export class OssUtils {
         });
         const result = await client.multipartUpload(savePath, file, uploadOptions);
         return { response: { ok: true }, data: result } as any;
-    };
+    }
 
 }

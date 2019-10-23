@@ -15,7 +15,7 @@ export declare class OssUtils {
         ossConfig?: AliyunOssConfig | undefined;
     };
     configure(config: AliyunOssConfig): void;
-    fetchConfig(skipNotifyError?: boolean): Promise<RequestResponse<AliyunOssConfig>>;
+    fetchConfig(skipNotifyError?: boolean, forceReload?: boolean): Promise<RequestResponse<AliyunOssConfig>>;
     getAliyunContext(): Promise<RequestResponse<{
         token: AliyunStsToken;
         ossSettings: AliyunOssConfig;

@@ -1,10 +1,11 @@
-import {OAuth2Session, ToastAdapter } from "../core";
+import { ToastAdapter } from "../core";
 
 export interface RequestOptions {
     clientId: string;
     clientSecret:string;
     accessTokenUrl:string;
+    checkTokenUrl:string;
     toast?:ToastAdapter;
-    errorDescibe?:{ [key:string] : string };
-    httpCodeDescribe?:{ [key:string] : string };
+    errorDescriber?:Record<string, string>;
+    httpCodeDescriber?:Record<string, string>;
 }
