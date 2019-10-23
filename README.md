@@ -12,6 +12,15 @@
 - 简单前端数据缓存，基于 session storage。
 - **需要配合后端 infra java 框架，非我厂人员该项目无任何价值**
 
+### 吐槽
+
+长期被前端虐，自学前端，看看到底有多难 .
+为什么一个刷新 token 都懒得做！ 
+为什么前端从来不把代码打包复用，都是 copy 到各个项目！
+后端供应前端 SDK 合适吗？！
+
+结论：网红程序员 ≠ 高手！！！
+
 ### 使用
 
 ```
@@ -33,16 +42,6 @@ import { message } from 'antd';
 const errors = {
   //commons
   "system_error": "系统错误",
-  "bad_request_param": "提交的参数不满足约束条件",
-  "miss_request_param": "缺少必要的参数",
-  "bad_format_request_param": "提交的参数格式不正确",
-  "invalid_captcha": "输入的验证码不正确",
-  "invalid_security_stamp":"安全令牌已过期或不正确，可能由于你操作花费的时间太长",
-  "sms_out_of_limit": "请勿频繁的发送短信验证码",
-  "stored_object_not_found": "找不到已经存储的文件",
-  "data_maybe_changed": "正在处理的数据已变化，请新页面",
-  "data_owner_unmatched": "无权访问需要的数据",
-  "data_missed": "数据不存在或已经被删除",
 
   //auth
   "unauthorized":"客户端请求需要授权",
@@ -58,7 +57,7 @@ const errors = {
   "redirect_uri_mismatch":"请求缺少重定向地址",
   "unsupported_response_type":"不支持的响应类型",
   "access_denied":"你没有权限进行该操作",
-  ....
+  //...其他自定义错误自行补充
 };
 
 /**
@@ -70,7 +69,8 @@ const options:RequestOptions = {
   accessTokenUrl:"/api/oauth/token", //Spring 标准 Endpoint
   toast: message,
   errorDescriber:errors
-}
+};
+
 const request = initRequest(options);
 
 export default request;
@@ -88,11 +88,13 @@ import { clientSession, OAuth2AccessToken, LoginParam } from "infra-sdk-core";
 const req:LoginParam =  {
    //省略代码 
 };
-const {response, data}:{ response: Response, data: OAuth2AccessToken } = await request.login(req, { skipNotifyError:true });
-const error = response.ok ? undefined : (data as ApplicationError).error_description
+const {response, data} = await request.login(req, { skipNotifyError:true });
 // Login successfully
 if (response.ok) {
   clientSession.saveToken(data);
+}else{
+  const error = data.error_description;
+  //handle error
 }
 
 ```
@@ -168,7 +170,7 @@ const src = oss.generateObjectUrl("/test/aaa.jpg")
 - aliyun oss sdk
   > oss 操作相关的 js SDK
 
-#### 感谢 
+### 感谢 
 
 npm-plugin-template 
 
