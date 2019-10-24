@@ -6,7 +6,7 @@ import { extend, RequestOptionsWithResponse, ResponseError, RequestMethod, Reque
 import { RefreshTokenParam, OAuth2AccessToken, GrantTypes, LoginParam, CheckTokenResult } from '../oauht2';
 import { RequestOptions } from './types';
 import { OAuth2Session, ToastAdapter, ApplicationError } from '../core';
-import {clientSession} from '../oauht2/session';
+import { clientSession } from '../oauht2/session';
 
 const codeMessage = {
     200: '服务器成功返回请求的数据。',
@@ -29,17 +29,17 @@ const codeMessage = {
 function translateError(
     data: ApplicationError,
     response: Response,
-    errorDescribe?: Map<string, string>,
-    httpCodeDescribe?: Map<string, string>): ApplicationError {
+    options: RequestOptions): ApplicationError {
+    const { errorDescriber, httpCodeDescriber } = options;
     var msg: any;
     if (data !== undefined && data.error !== undefined) {
-        const desc = errorDescribe ? errorDescribe[data.error] : undefined;
+        const desc = errorDescriber ? errorDescriber[data.error] : data.error_description;
         msg = desc || `未处理错误: ${data.error}`;
     }
     else {
-        const codeDescribe = httpCodeDescribe || codeMessage;
+        const codeDescribe = httpCodeDescriber || codeMessage;
         const { status } = response;
-        msg = codeDescribe[status] || '未知异常';
+        msg = codeDescribe[status] || `HTTP ERROR: ${status}`;
     }
     return { error: data.error || `http_${response.status}`, error_description: msg };
 }
@@ -47,13 +47,13 @@ function translateError(
 /**
  * 异常处理程序
  */
-const handleError = (error: ResponseError, toast?: ToastAdapter, skipNotify?: boolean) => {
+const handleError = (error: ResponseError, options: RequestOptions, skipNotify?: boolean) => {
     const { response, data } = error;
     var skip = skipNotify || false;
     if (response) {
-        var e = translateError(data, response);
-        if (!skip && toast) {
-            toast.error(e.error_description);
+        var e = translateError(data, response, options);
+        if (!skip && options.toast) {
+            options.toast.error(e.error_description);
         }
         return { ...error, data: e };
     } else {
@@ -64,8 +64,8 @@ const handleError = (error: ResponseError, toast?: ToastAdapter, skipNotify?: bo
             },
             response: { ok: false }
         };
-        if (!skip && toast) {
-            toast.error(clientError.data.error_description);
+        if (!skip && options.toast) {
+            options.toast.error(clientError.data.error_description);
         }
         return clientError;
     }
@@ -73,8 +73,8 @@ const handleError = (error: ResponseError, toast?: ToastAdapter, skipNotify?: bo
 
 export interface ExtendedRequestMethod<R = true> extends RequestMethod<R> {
     <T = any>(url: string, options?: ExtendedRequestOptionsInit): R extends true ? Promise<RequestResponse<T & ApplicationError>> : Promise<T | ApplicationError>;
-    login:(param:LoginParam, options?: OAuth2RequestOptions)=> Promise<RequestResponse<OAuth2AccessToken & ApplicationError>>;
-    checkToken:(options?: OAuth2RequestOptions & { tokenValue?:string })=> Promise<RequestResponse<CheckTokenResult & ApplicationError>>;
+    login: (param: LoginParam, options?: OAuth2RequestOptions) => Promise<RequestResponse<OAuth2AccessToken & ApplicationError>>;
+    checkToken: (options?: OAuth2RequestOptions & { tokenValue?: string }) => Promise<RequestResponse<CheckTokenResult & ApplicationError>>;
 }
 
 
@@ -86,13 +86,13 @@ export interface ExtendedRequestOptionsInit extends RequestOptionsInit {
 
 export type ResponseLike = Partial<Omit<Response, "ok">> & { ok: boolean };
 
-export type RequestResponseLike<T> = { response:ResponseLike, data:T };
+export type RequestResponseLike<T> = { response: ResponseLike, data: T };
 
 export type OAuth2RequestOptions = Omit<ExtendedRequestOptionsInit, "data" | "method" | "headers" | "requestType" | "skipAuth">;
 
-const requestContext:Pick<RequestOptions, "accessTokenUrl" | "checkTokenUrl"> & { session?: OAuth2Session} = {
-    accessTokenUrl:"",
-    checkTokenUrl:"",
+const requestContext: Pick<RequestOptions, "accessTokenUrl" | "checkTokenUrl"> & { session?: OAuth2Session } = {
+    accessTokenUrl: "",
+    checkTokenUrl: "",
 };
 
 
@@ -113,7 +113,7 @@ export function initRequest(options: RequestOptions, session?: OAuth2Session) {
     request.use(async (ctx, next) => {
         if (ctx && ctx.req && ctx.req.options && ((typeof ctx.req.options.errorHandler) === "undefined")) {
             const op = ctx.req.options as ExtendedRequestOptionsInit;
-            op.errorHandler = (e) => { return handleError(e, options.toast, op.skipNotifyError) };
+            op.errorHandler = (e) => { return handleError(e, options, op.skipNotifyError) };
         }
 
         if (ctx.req.options["skipAuth"] !== true && requestContext.session && requestContext.session.isLogged) {
@@ -153,45 +153,45 @@ export function initRequest(options: RequestOptions, session?: OAuth2Session) {
 
     const r = request as ExtendedRequestMethod;
     r.login = (
-        param:LoginParam, 
+        param: LoginParam,
         options?: OAuth2RequestOptions) => {
-        const {accessTokenUrl} = requestContext;
+        const { accessTokenUrl } = requestContext;
 
         const settings: ExtendedRequestOptionsInit = {
             method: "POST",
             data: param,
-            requestType:"form",
+            requestType: "form",
             headers: { "Authorization": clientSession.getClientTokenHeaderValue() }
         };
-        const s = {...settings, ...options, skipAuth: true} as ExtendedRequestOptionsInit;
-    
+        const s = { ...settings, ...options, skipAuth: true } as ExtendedRequestOptionsInit;
+
         return request<OAuth2AccessToken & ApplicationError>(accessTokenUrl, s);
     };
 
     r.checkToken = async (
-        options?: OAuth2RequestOptions & { tokenValue?:string }) => {
+        options?: OAuth2RequestOptions & { tokenValue?: string }) => {
         const { checkTokenUrl, session: current } = requestContext;
 
         const settings: ExtendedRequestOptionsInit = {
             method: "GET",
             headers: { "Authorization": clientSession.getClientTokenHeaderValue() }
         };
-        const s = {...settings, ...options, skipAuth: true} as ExtendedRequestOptionsInit;
+        const s = { ...settings, ...options, skipAuth: true } as ExtendedRequestOptionsInit;
         const inputToken = (options || {}).tokenValue;
         const token = inputToken || ((current && current.accessToken) ? current.accessToken.access_token : "");
-        if(token.length){
-            const r:CheckTokenResult = { 
+        if (token.length) {
+            const r: CheckTokenResult = {
                 aud: [],
                 scope: [],
                 token_type: "",
-                user_id:"",
+                user_id: "",
                 user_name: "",
                 roles: [],
-                exp:0,
-                client_id:"",
-                active:false
-             };
-            return { response: { ok:true }, data: r } as RequestResponse<CheckTokenResult>;
+                exp: 0,
+                client_id: "",
+                active: false
+            };
+            return { response: { ok: true }, data: r } as RequestResponse<CheckTokenResult>;
         }
         return await request<CheckTokenResult & ApplicationError>(`${checkTokenUrl}?token=${token}`, s);
     };
