@@ -1,4 +1,4 @@
-import { OAuth2AccessToken, UserPrincipal } from "../oauht2";
+import { OAuth2AccessToken, UserPrincipal } from "../oauth2";
 
 export interface ApplicationError {
     error?: string;

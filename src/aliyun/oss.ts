@@ -54,12 +54,12 @@ export class OssUtils {
                 aliyunContext.stsToken = r.data;
             }
             else {
-                return r as any; //发生错误，类型无所谓
+                return r as any; // 发生错误，类型无所谓
             }
         }
-        const r = await this.fetchConfig();
-        if (!r.response.ok) {
-            return r as any;
+        const config = await this.fetchConfig();
+        if (!config.response.ok) {
+            return config as any;
         }
         return { data: aliyunContext, response: { ok: true } } as any;
     }

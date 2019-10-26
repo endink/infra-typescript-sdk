@@ -18,11 +18,11 @@ export const isNullOrEmptyString = (value?: any) => ((typeof value) !== "string"
 export const notNullOrEmptyString = (value?: any) => !isNullOrEmptyString(value);
 
 export function generateUUID() {
-    var d = new Date().getTime();
-    var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-        var r = (d + Math.random() * 16) % 16 | 0;
+    let d = new Date().getTime();
+    const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+        const r = (d + Math.random() * 16) % 16 | 0;
         d = Math.floor(d / 16);
-        return (c == 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+        return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
     });
     return uuid;
 };
@@ -63,10 +63,11 @@ export class SessionCached<T> implements SessionCachedType<{ data: T, expired: n
 export async function getOrSetCached<T>(key: string, timeout: Moment, setter: () => Promise<T | undefined | null>) {
     const cached = sessionStorage.getItem(key);
     if (notNullOrEmptyString(cached)) {
-        var item: any;
+        let item: any;
         try {
             item = JSON.parse(cached as string) as SessionCached<T>;
         } catch (e) {
+            console.warn(e);
         }
         if (item !== undefined && item.expired > moment.now()) {
             return item.data;
@@ -76,8 +77,8 @@ export async function getOrSetCached<T>(key: string, timeout: Moment, setter: ()
     }
     const data = await setter();
     if (data !== undefined && data !== null) {
-        const item = new SessionCached<T>(data, timeout.valueOf());
-        sessionStorage.setItem(key, JSON.stringify(item));
+        const cache = new SessionCached<T>(data, timeout.valueOf());
+        sessionStorage.setItem(key, JSON.stringify(cache));
     }
     return data;
 }

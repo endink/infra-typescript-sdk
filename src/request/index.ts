@@ -1,12 +1,8 @@
-/**
- * request 网络请求工具
- * 更详细的 api 文档: https://github.com/umijs/umi-request
- */
 import { extend, RequestOptionsWithResponse, ResponseError, RequestMethod, RequestOptionsInit, RequestResponse } from 'umi-request';
-import { RefreshTokenParam, OAuth2AccessToken, GrantTypes, LoginParam, CheckTokenResult } from '../oauht2';
+import { RefreshTokenParam, OAuth2AccessToken, GrantTypes, LoginParam, CheckTokenResult } from '../oauth2';
 import { RequestOptions } from './types';
 import { OAuth2Session, ToastAdapter, ApplicationError } from '../core';
-import { clientSession } from '../oauht2/session';
+import { clientSession } from '../oauth2/session';
 
 const codeMessage = {
     200: '服务器成功返回请求的数据。',
@@ -31,7 +27,7 @@ function translateError(
     response: Response,
     options: RequestOptions): ApplicationError {
     const { errorDescriber, httpCodeDescriber } = options;
-    var msg: any;
+    let msg: any;
     if (data !== undefined && data.error !== undefined) {
         const desc = errorDescriber ? errorDescriber[data.error] : data.error_description;
         msg = desc || `未处理错误: ${data.error}`;
@@ -49,9 +45,9 @@ function translateError(
  */
 const handleError = (error: ResponseError, options: RequestOptions, skipNotify?: boolean) => {
     const { response, data } = error;
-    var skip = skipNotify || false;
+    const skip = skipNotify || false;
     if (response) {
-        var e = translateError(data, response, options);
+        const e = translateError(data, response, options);
         if (!skip && options.toast) {
             options.toast.error(e.error_description);
         }
@@ -86,7 +82,7 @@ export interface ExtendedRequestOptionsInit extends RequestOptionsInit {
 
 export type ResponseLike = Partial<Omit<Response, "ok">> & { ok: boolean };
 
-export type RequestResponseLike<T> = { response: ResponseLike, data: T };
+export interface RequestResponseLike<T> { response: ResponseLike, data: T }
 
 export type OAuth2RequestOptions = Omit<ExtendedRequestOptionsInit, "data" | "method" | "headers" | "requestType" | "skipAuth">;
 
@@ -102,36 +98,34 @@ export function initRequest(options: RequestOptions, session?: OAuth2Session) {
     requestContext.session.setClient(clientId, clientSecret);
     requestContext.accessTokenUrl = options.accessTokenUrl;
     requestContext.checkTokenUrl = options.checkTokenUrl;
-    /**
- * 配置request请求时的默认参数
- */
+    
     const request = extend({
         credentials: 'omit', // 默认请求是否带上cookie
         getResponse: true
     });
 
     request.use(async (ctx, next) => {
-        if (ctx && ctx.req && ctx.req.options && ((typeof ctx.req.options.errorHandler) === "undefined")) {
-            const op = ctx.req.options as ExtendedRequestOptionsInit;
-            op.errorHandler = (e) => { return handleError(e, options, op.skipNotifyError) };
+        const op = (ctx && ctx.req) ? ctx.req.options as ExtendedRequestOptionsInit : undefined;
+        if (op && ((typeof op.errorHandler) === "undefined")) {
+            op.errorHandler = (e) => handleError(e, options, op.skipNotifyError);
         }
 
-        if (ctx.req.options["skipAuth"] !== true && requestContext.session && requestContext.session.isLogged) {
+        if (op && op.skipAuth !== true && requestContext.session && requestContext.session.isLogged) {
             if (requestContext.session.isTokenExpired) {
                 const data: RefreshTokenParam = {
                     grant_type: GrantTypes.GRANT_TYPE_REFRESH_TOKEN,
                     refresh_token: requestContext.session.accessToken!!.refresh_token || "",
                     scope: requestContext.session.accessToken!!.scope
                 };
-                //自动刷新缓存
+                // 自动刷新缓存
                 const requestOptions: RequestOptionsWithResponse = {
                     getResponse: true,
                     requestType: "form",
                     method: "post",
-                    data: data,
+                    data,
                     headers: { "Authorization": requestContext.session.getClientTokenHeaderValue() }
                 };
-                (requestOptions as any)["skipAuth"] = true;
+                (requestOptions as any).skipAuth = true;
                 const r = await request<OAuth2AccessToken>(options.accessTokenUrl, requestOptions);
                 if (r.response && r.response.ok) {
                     const token = r.data as OAuth2AccessToken;
@@ -141,8 +135,8 @@ export function initRequest(options: RequestOptions, session?: OAuth2Session) {
                     return;
                 }
             }
-            const headers = ctx.req.options.headers || {};
-            if (typeof headers["Authorization"] === "undefined") {
+            const headers = ctx.req.options.headers || {} as Record<string, string>;
+            if (headers["Authorization"] === undefined) {
                 headers["Authorization"] = requestContext.session.getAuthTokenHeaderValue();
             }
             await next();
@@ -151,10 +145,10 @@ export function initRequest(options: RequestOptions, session?: OAuth2Session) {
         }
     });
 
-    const r = request as ExtendedRequestMethod;
-    r.login = (
+    const req = request as ExtendedRequestMethod;
+    req.login = (
         param: LoginParam,
-        options?: OAuth2RequestOptions) => {
+        ropt?: OAuth2RequestOptions) => {
         const { accessTokenUrl } = requestContext;
 
         const settings: ExtendedRequestOptionsInit = {
@@ -163,21 +157,21 @@ export function initRequest(options: RequestOptions, session?: OAuth2Session) {
             requestType: "form",
             headers: { "Authorization": clientSession.getClientTokenHeaderValue() }
         };
-        const s = { ...settings, ...options, skipAuth: true } as ExtendedRequestOptionsInit;
+        const s = { ...settings, ...ropt, skipAuth: true } as ExtendedRequestOptionsInit;
 
         return request<OAuth2AccessToken & ApplicationError>(accessTokenUrl, s);
     };
 
-    r.checkToken = async (
-        options?: OAuth2RequestOptions & { tokenValue?: string }) => {
+    req.checkToken = async (
+        ropt?: OAuth2RequestOptions & { tokenValue?: string }) => {
         const { checkTokenUrl, session: current } = requestContext;
 
         const settings: ExtendedRequestOptionsInit = {
             method: "GET",
             headers: { "Authorization": clientSession.getClientTokenHeaderValue() }
         };
-        const s = { ...settings, ...options, skipAuth: true } as ExtendedRequestOptionsInit;
-        const inputToken = (options || {}).tokenValue;
+        const s = { ...settings, ...ropt, skipAuth: true } as ExtendedRequestOptionsInit;
+        const inputToken = (ropt || {}).tokenValue;
         const token = inputToken || ((current && current.accessToken) ? current.accessToken.access_token : "");
         if (token.length) {
             const r: CheckTokenResult = {
@@ -196,6 +190,6 @@ export function initRequest(options: RequestOptions, session?: OAuth2Session) {
         return await request<CheckTokenResult & ApplicationError>(`${checkTokenUrl}?token=${token}`, s);
     };
 
-    return r;
+    return req;
 }
 

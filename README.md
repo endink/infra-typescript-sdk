@@ -25,8 +25,10 @@
 
 ```
 npm i infra-sdk-core
+npm i moment
 ```
 
+> 注意：由于 moment 更新频繁，同时因为全球化全局配置冲突等问题，包中没有自动关联 moment 依赖，需要手动安装 moment
 需要配合后端 infra 框架使用（ 该框架暂无开源计划 ）
 
 
@@ -100,12 +102,12 @@ if (response.ok) {
 ```
 
 > 增强特性：
-> - 1. 自动带入 bear token: 对 clientSession 调用 saveToken 后，之后的 http 请求自动带入 oauth2 的 bear token (自动添加 http header); 
-> - 2. 自动刷新 acccess token: 根据 access token 的过期时间判断是否在请求 HTTP 接口之前进行 refresh token 刷新操作; 
-> - 3. request.login 方法： 对接 spring security oauth2 标准 endpoint: /oauth/token， 登录并返回 access token;
-> - 4. request.checkToken 方法： 对接 spring security oauth2 标准 endpoint: oauth/check_token， 检查当前 token 是否有效;
-> - 5. skipNotifyError 属性: 是否使用 toast 方式来处理异常;
-> - 6. skipAuth 属性： 当设置为 true 时，1 和 2 步骤不再进行 (有时可能我们希望执行普通的 http 请求);
+> 1. 自动带入 bear token: 对 clientSession 调用 saveToken 后，之后的 http 请求自动带入 oauth2 的 bear token (自动添加 http header); 
+> 2. 自动刷新 acccess token: 根据 access token 的过期时间判断是否在请求 HTTP 接口之前进行 refresh token 刷新操作; 
+> 3. request.login 方法： 对接 spring security oauth2 标准 endpoint: /oauth/token， 登录并返回 access token;
+> 4. request.checkToken 方法： 对接 spring security oauth2 标准 endpoint: oauth/check_token， 检查当前 token 是否有效;
+> 5. skipNotifyError 属性: 是否使用 toast 方式来处理异常;
+> 6. skipAuth 属性： 当设置为 true 时，1 和 2 步骤不再进行 (有时可能我们希望执行普通的 http 请求);
 
 
 #### 使用阿里云 OSS
@@ -113,7 +115,7 @@ if (response.ok) {
 创建 oss.ts 文件：
 
 ```typescript
-import { OssUtils } from 'infra-sdk-core';
+import { OssUtils } from 'infra-sdk-core/lib/aliyun';
 
 const oss = new OssUtils(request, {
   configURL: "/api/oss-config",
@@ -130,7 +132,7 @@ export default oss;
 ```typescript
 
 import oss from "./oss";
-import { BucketPolicy } from 'infra-sdk-core';
+import { BucketPolicy } from 'infra-sdk-core/lib/aliyun';
 
 //此处忽略无数代码...
 

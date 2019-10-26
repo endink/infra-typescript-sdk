@@ -19,7 +19,7 @@ export interface RefreshTokenParam {
 };
 
 export interface LoginParam {
-    grant_type: string;
+    grant_type: string; 
     username: string;
     password: string;
     scope?: string;

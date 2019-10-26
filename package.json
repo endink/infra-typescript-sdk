@@ -1,6 +1,6 @@
 {
   "name": "infra-sdk-core",
-  "version": "1.0.9",
+  "version": "1.2.0",
   "description": "A type script sdk for infra java spring server.",
   "main": "lib/index.js",
   "scripts": {
@@ -8,7 +8,9 @@
     "build": "tsc",
     "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
     "lint": "tslint -p tsconfig.json",
-    "test": "jest --config jestconfig.json"
+    "lint:fix": "tslint --fix -p tsconfig.json",
+    "test": "jest --config jestconfig.json",
+    "prettier": "prettier -c --write \"src/*\""
   },
   "keywords": [
     "npm",
@@ -29,7 +31,7 @@
   },
   "homepage": "https://github.com/endink/infra-typescript-sdk",
   "dependencies": {
-    "moment": "^2.24.0",
+    "ali-oss": "^6.1.1",
     "umi-request": "^1.2.8"
   },
   "devDependencies": {
@@ -58,6 +60,7 @@
     "url-loader": "^2.1.0",
     "webpack": "^4.34.0",
     "webpack-cli": "^3.3.4",
-    "webpack-dev-server": "^3.7.2"
+    "webpack-dev-server": "^3.7.2",
+    "moment": "^2.24.0"
   }
 }

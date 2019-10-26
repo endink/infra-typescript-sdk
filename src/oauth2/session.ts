@@ -1,6 +1,5 @@
 import { UserPrincipal, OAuth2AccessToken } from ".";
 import {OAuth2Session} from "../core";
-import { string } from "prop-types";
 
 interface SaveObject {
     token: OAuth2AccessToken;
@@ -42,23 +41,23 @@ const clientSession: OAuth2Session = {
         return true;
     },
 
-    clearToken: function () {
+    clearToken() {
         this.accessToken = undefined;
         this.acccessTokenCreated = undefined;
         this.user = new UserPrincipal();
         sessionStorage.removeItem("clientInfo");
     },
 
-    getClientTokenHeaderValue: function () {
+    getClientTokenHeaderValue() {
         const key = `${this.clientId}:${this.secret}`;
         return `basic ${btoa(key)}`;
     },
 
-    getRefreshTokenHeaderValue: function () {
+    getRefreshTokenHeaderValue() {
         return `bearer ${this.accessToken ? this.accessToken.refresh_token : ""}`;
     },
 
-    getAuthTokenHeaderValue: function () {
+    getAuthTokenHeaderValue() {
         if (!this.isLogged) {
             const key = `${this.clientId}:${this.secret}`;
             return `basic ${btoa(key)}`;
@@ -67,7 +66,7 @@ const clientSession: OAuth2Session = {
         }
     },
 
-    loadToken: function () {
+    loadToken() {
         const json = sessionStorage.getItem("clientInfo");
         if ((typeof json) === "string" && json != null) {
             const saved: SaveObject = JSON.parse(json);
@@ -75,7 +74,7 @@ const clientSession: OAuth2Session = {
                 sessionStorage.removeItem("clientInfo");
             } else {
                 this.accessToken = saved.token
-                //这里必须 new 一下，否则只读属性是 undefine
+                // 这里必须 new 一下，否则只读属性是 undefine
                 this.user = new UserPrincipal(
                     this.accessToken.user_id,
                     this.accessToken.user_name,
@@ -86,7 +85,7 @@ const clientSession: OAuth2Session = {
         }
     },
 
-    saveToken: function (token: OAuth2AccessToken) {
+    saveToken(token: OAuth2AccessToken) {
 
         this.user = new UserPrincipal(token.user_id, token.user_name, token.roles, token.two_factor_granted);
         this.acccessTokenCreated = Date.now().valueOf();
