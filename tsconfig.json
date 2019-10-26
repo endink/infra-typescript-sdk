@@ -19,9 +19,9 @@
     "jsx": "react",
     "baseUrl": "./",
     "paths": { "*": ["types/*"] },
-    "declaration":true
+    "declaration": true
     // "suppressImplicitAnyIndexErrors": true, //阻止对缺少索引签名的索引对象报错
   },
   "exclude": ["node_modules"],
-  "include": ["src/**/*"]
+  "include": ["src/**/*", "/src/typings.d.ts"]
 }

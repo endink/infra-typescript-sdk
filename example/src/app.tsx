@@ -1,5 +1,5 @@
-import * as React from 'react'
-import { PluginDemo } from '../../src/component/PluginDemo/index'
+import * as React from "react"
+import { PluginDemo } from "../../src/component/PluginDemo/index"
 
 // tslint:disable-next-line:no-empty-interface
 interface IProps {}
@@ -10,7 +10,7 @@ class App extends React.Component<IProps, IStates> {
     render() {
         return (
             <React.Fragment>
-                <PluginDemo title={'npm插件-测试demo-模板'} />
+                <PluginDemo title={"npm插件-测试demo-模板"} />
             </React.Fragment>
         )
     }
