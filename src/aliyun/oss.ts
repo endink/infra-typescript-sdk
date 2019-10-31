@@ -1,7 +1,7 @@
 import { AliyunStsToken, AliyunOssConfig, BucketPolicy } from ".";;
 import { RequestResponse } from "umi-request";
 import OSS, { Checkpoint, MultipartUploadResult } from "ali-oss";
-import { ExtendedRequestMethod } from "../request";
+import { ExtendedRequestMethod, ExtendedRequestOptionsInit } from "../request";
 import { ApplicationError } from "../core";
 
 interface AliyunContext {
@@ -14,12 +14,33 @@ const aliyunContext: AliyunContext = {};
 export interface OssOptions {
     configURL: string;
     stsTokenURL: string;
+    genUrl: string;
+}
+
+interface ObjectKey {
+    key:String;
+    bucket?: BucketPolicy;
+}
+
+export interface UrlResutl{
+    url:string;
 }
 
 export class OssUtils {
     constructor(
         private request:ExtendedRequestMethod, 
         public options:OssOptions){
+    }
+
+    static create(request:ExtendedRequestMethod, serverBaseUrl:string){
+       const url = (serverBaseUrl || "").trim();
+       const base = url.endsWith("/") ? url.substr(0, url.length - 1) : url;
+       const options: OssOptions = {
+           configURL: `${base}/cnf/oss`,
+           stsTokenURL: `${base}/token`,
+           genUrl:`${base}/oss/temp-url`
+       }; 
+       return new OssUtils(request, options);
     }
 
     get context(){
@@ -73,7 +94,18 @@ export class OssUtils {
             const domain = hasCustomDomain ? bucket.customDomain : `${bucket.bucket}.${bucket.region}.aliyuncs.com`;
             return `https://${domain}/${file}`;
         }
-        return "";
+        
+    }
+
+    public async generateObjectTempUrl(filePath: string, resOptions?: Omit<ExtendedRequestOptionsInit, "method" | "data">) : Promise<string>{
+        const postKey: ObjectKey = { key: filePath, bucket: BucketPolicy.Private };
+        const requestOptions = {...(resOptions || {}), method: "POST", data: postKey};
+        const { response, data }  = await this.request<UrlResutl>(this.options.genUrl, requestOptions);
+        if(response.ok){
+            return data.url;
+        }else{
+            return ""; 
+        }
     }
 
     public ossUpload = async (

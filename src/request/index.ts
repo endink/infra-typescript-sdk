@@ -3,6 +3,7 @@ import { RefreshTokenParam, OAuth2AccessToken, GrantTypes, LoginParam, CheckToke
 import { RequestOptions } from './types';
 import { OAuth2Session, ToastAdapter, ApplicationError } from '../core';
 import { clientSession } from '../oauth2/session';
+import { notNullOrEmptyString } from "../utils";
 
 const codeMessage = {
     200: '服务器成功返回请求的数据。',
@@ -28,8 +29,8 @@ function translateError(
     options: RequestOptions): ApplicationError {
     const { errorDescriber, httpCodeDescriber } = options;
     let msg: any;
-    if (data !== undefined && data.error !== undefined) {
-        const desc = errorDescriber ? errorDescriber[data.error] : data.error_description
+    if (data !== undefined && notNullOrEmptyString(data.error)) {
+        const desc = errorDescriber ? errorDescriber[data.error!!] : data.error_description
         msg = desc || `未处理错误: ${data.error}`
     } else {
         const codeDescribe = httpCodeDescriber || codeMessage

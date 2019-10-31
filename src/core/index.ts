@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 import { OAuth2AccessToken, UserPrincipal } from "../oauth2";
-=======
-import { OAuth2AccessToken, UserPrincipal } from "../oauht2"
->>>>>>> 27fabc535703e5f135bb5533fd2c7d652aa4900c
 
 export interface ApplicationError {
     error?: string
