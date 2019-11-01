@@ -1,6 +1,6 @@
 {
   "name": "infra-sdk-core",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "A type script sdk for infra java spring server.",
   "main": "lib/index.js",
   "scripts": {
