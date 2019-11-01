@@ -1,6 +1,6 @@
 {
   "name": "infra-sdk-core",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "description": "A type script sdk for infra java spring server.",
   "main": "lib/index.js",
   "scripts": {
@@ -10,7 +10,7 @@
     "lint": "tslint -p tsconfig.json",
     "lint:fix": "tslint --fix -p tsconfig.json",
     "test": "jest --config jestconfig.json",
-    "prettier": "prettier -c --write \"src/*\""
+    "prettier": "prettier -c --write \"src/**\""
   },
   "keywords": [
     "npm",
