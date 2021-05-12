@@ -102,7 +102,7 @@ if (response.ok) {
 > 4. request.checkToken 方法： 对接 spring security oauth2 标准 endpoint: oauth/check_token， 检查当前 token 是否有效;
 > 5. skipNotifyError 属性: 是否使用 toast 方式来处理异常;
 > 6. skipAuth 属性： 当设置为 true 时，1 和 2 步骤不再进行 (有时可能我们希望执行普通的 http 请求);
-
+---
 #### 使用阿里云 OSS
 
 创建 oss.ts 文件：
@@ -146,7 +146,47 @@ const src = oss.generateObjectUrl("/test/aaa.jpg")
 ```
 
 > 注意： 出于同步编程的便捷性考虑，generateObjectUrl 不会请求从后端配置，所以该方法需要在调用之前执行过 fetchConfig 或 configure 方法， 否则返回空串 ( "" );   
+---
+#### 使用 Minio    
 
+创建 minio.ts ，导出一个全局的 minioUtils 实例   
+> minio 配合 infra-application-framework 可以自动从服务器拉取配置，无需多余代码
+
+```typescript
+const minio = MinioUtils.create(request, "http://localhost:8080");
+//
+export minio;
+
+```
+
+例子中 http://localhost:8080 为使用 **infra-application-framework** 包构建的后端服务器侦听地址。   
+
+生成 public bucket 对象访问路径（该操作不会产生任何服务端请求）：
+
+```typescript
+import { minio } from "./minio"
+
+const src = minio.generateObjectUrl("/test/aaa.jpg");
+```
+
+处理 private bucket 对象访问路径（该操作会调用服务器生成一个可过期的临时访问路径）
+
+```typescript
+import { minio } from "./minio"
+
+const src = await minio.presignedObjectUrl("/test/aaa.jpg");
+``` 
+> 注意：**presignedObjectUrl** 因为会产生服务器请求，因此是异步方法，应使用 await 接收返回值。
+
+Minio 对象上传文件 (公共访问存储桶)
+
+```typescript
+import { minio } from "./minio"
+
+const etag = await minio.ossUpload(BucketPolicy.Public "/test/aaa.jpg", file);
+``` 
+> 传入 **BucketPolicy.Private** 上传至私有访问存储桶， file 支持 buffer/stream/string 。
+---
 
 ### 发布包到本地（测试）
 
