@@ -155,7 +155,7 @@ const src = oss.generateObjectUrl("/test/aaa.jpg")
 npm run build  
 ```
    
-1. 发布到 global （软链）
+1. 发布到本地 global （软链）
 ```shell
 npm run pub  
 ``` 

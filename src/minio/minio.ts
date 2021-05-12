@@ -134,7 +134,7 @@ export class MinioUtils {
             cnf.port = (cnf.schema === "https") ? 443 : 80;
         }
 
-        const bucketName = bucketPolicy == BucketPolicy.Private ? cnf.privateBucket : cnf.publicBucket;
+        const bucketName = bucketPolicy === BucketPolicy.Private ? cnf.privateBucket : cnf.publicBucket;
 
         const minioClient = new Minio.Client({
             endPoint: cnf.host,
@@ -149,7 +149,7 @@ export class MinioUtils {
                 if(err !== undefined && err !== null){
                     reject(err);
                 }else{
-                    resolve({ etag: etag });
+                    resolve({ etag });
                 }
             });
         })

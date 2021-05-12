@@ -9,7 +9,7 @@ export interface UserPrincipal {
 
     getRoles(): string[];
     hasRole(role: string): boolean;
-    hasAnyOfRoles(...roles: string[]): Boolean;
+    hasAnyOfRoles(...roles: string[]): boolean;
 }
 
 export interface RefreshTokenParam {

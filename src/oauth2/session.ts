@@ -53,9 +53,9 @@ function tokenToPrincipal(token: OAuth2AccessToken): UserPrincipal {
     }
 
     const p = {
-        token: token,
-        roles: roles,
-        attributes: attributes,
+        token,
+        roles,
+        attributes,
 
         get userId(): string | undefined {
             return this.token.user_id;
@@ -85,14 +85,14 @@ function tokenToPrincipal(token: OAuth2AccessToken): UserPrincipal {
             return isNullOrEmptyString(this.token?.user_id)
         },
 
-        hasRole(role: String): boolean {
+        hasRole(role: string): boolean {
             return isNullOrEmptyString(this.roles?.find(item => item === role));
         },
 
-        hasAnyOfRoles(...roles: String[]): boolean {
-            const rs = roles || [];
+        hasAnyOfRoles(...roleNames: string[]): boolean {
+            const rs = roleNames || [];
             if (rs.length) {
-                for (const r in roles) {
+                for (const r in rs) {
                     if (this.hasRole(r)) {
                         return true;
                     }

@@ -10,3 +10,5 @@ example/
 *.json
 *.log
 webpack.config.js
+.local-pack/
+

@@ -19,7 +19,7 @@ export interface OssOptions {
 }
 
 interface ObjectKey {
-    key: String;
+    key: string;
     bucket?: BucketPolicy;
 }
 
