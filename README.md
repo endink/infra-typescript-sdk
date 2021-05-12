@@ -1,7 +1,7 @@
 # 适用于 Typescript 的前端核心服务 SDK
 
-![Hex.pm](https://img.shields.io/hexpm/l/plug.svg)
-![Npm Repository](https://raster.shields.io/npm/v/infra-sdk-core)
+![Hex.pm](https://img.shields.io/npm/l/infra-sdk-core?color=green&style=flat-square)
+![Npm Repository](https://img.shields.io/npm/v/infra-sdk-core?style=flat-square)
 
 ### 介绍
 
