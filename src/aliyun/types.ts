@@ -17,7 +17,7 @@ export interface AliyunOssConfig {
     public: BucketSettings;
 }
 
-export enum BucketPolicy {
-    Private,
-    Public
+export interface AliyunConfig {
+    oss: AliyunOssConfig
 }
+

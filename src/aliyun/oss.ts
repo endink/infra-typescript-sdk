@@ -1,8 +1,9 @@
-import { AliyunStsToken, AliyunOssConfig, BucketPolicy } from ".";
+import { AliyunStsToken, AliyunOssConfig } from ".";
 import { RequestResponse } from "umi-request";
 import OSS, { Checkpoint, MultipartUploadResult } from "ali-oss";
 import { ExtendedRequestMethod, ExtendedRequestOptionsInit } from "../request";
-import { ApplicationError } from "../core";
+import { ApplicationError, BucketPolicy } from "../core";
+import { AliyunConfig } from "./types";
 
 interface AliyunContext {
     stsToken?: AliyunStsToken;
@@ -27,15 +28,15 @@ export interface UrlResutl {
 }
 
 export class OssUtils {
-    constructor(private request: ExtendedRequestMethod, public options: OssOptions) {}
+    private constructor(private request: ExtendedRequestMethod, public options: OssOptions) {}
 
     static create(request: ExtendedRequestMethod, serverBaseUrl: string) {
         const url = (serverBaseUrl || "").trim();
         const base = url.endsWith("/") ? url.substr(0, url.length - 1) : url;
         const options: OssOptions = {
-            configURL: `${base}/cnf/oss`,
-            stsTokenURL: `${base}/token`,
-            genUrl: `${base}/oss/temp-url`
+            configURL: `${base}/aliyun/oss/cnf`,
+            stsTokenURL: `${base}/aliyun/token`,
+            genUrl: `${base}/aliyun/oss/temp-url`
         };
         return new OssUtils(request, options);
     }
@@ -53,19 +54,24 @@ export class OssUtils {
         forceReload: boolean = false
     ): Promise<RequestResponse<AliyunOssConfig>> {
         if (aliyunContext.ossConfig === undefined || forceReload) {
-            const r = await this.request<AliyunOssConfig>(this.options.configURL, {
+            const r = await this.request<AliyunConfig>(this.options.configURL, {
                 method: "GET",
                 skipNotifyError
             });
             if (r.response.ok) {
-                aliyunContext.ossConfig = r.data;
+                aliyunContext.ossConfig = r.data.oss;
             }
-            return r;
+            return { response: r.response, data: r?.data?.oss };
         }
         return { response: { ok: true }, data: aliyunContext.ossConfig } as RequestResponse<AliyunOssConfig>;
     }
 
     public async getAliyunContext(): Promise<RequestResponse<AliyunContext>> {
+        const config = await this.fetchConfig();
+        if (!config.response.ok) {
+            return config as any;
+        }
+        
         if (aliyunContext.stsToken === undefined || Number(aliyunContext.stsToken.expiration) <= Date.now().valueOf()) {
             const r = await this.request<AliyunStsToken>(this.options.stsTokenURL, {
                 method: "GET",
@@ -77,10 +83,7 @@ export class OssUtils {
                 return r as any; // 发生错误，类型无所谓
             }
         }
-        const config = await this.fetchConfig();
-        if (!config.response.ok) {
-            return config as any;
-        }
+        
         return { data: aliyunContext, response: { ok: true } } as any;
     }
 

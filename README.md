@@ -145,23 +145,41 @@ import { oss } from "./oss"
 const src = oss.generateObjectUrl("/test/aaa.jpg")
 ```
 
-> 注意： 出于同步编程的便捷性考虑，generateObjectUrl 不会请求从后端配置，所以该方法需要在调用之前执行过 fetchConfig 或 configure 方法， 否则返回空串 ( "" );
+> 注意： 出于同步编程的便捷性考虑，generateObjectUrl 不会请求从后端配置，所以该方法需要在调用之前执行过 fetchConfig 或 configure 方法， 否则返回空串 ( "" );   
 
-### 相关命令
 
-- npm run start 启动本地服务开发
-- npm run build 是根据根目录的 tsconfig.json 文件来执行 tsx 解析并最终打包到根目录的 lib/文件夹内
-- npm run lint 运行 tslint 检测代码格式问题
-- npm run test 运行 Jest 进行代码测试 测试用例在/src/test/目录中 以 xxx.test.tsx 命名
-- npm login 登录 npm（没有的话就去注册一个）
-- npm publish 推送的代码到 npm
+### 发布包到本地（测试）
+
+1. 编译项目    
+```shell
+npm run build  
+```
+   
+1. 发布到 global （软链）
+```shell
+npm run pub  
+``` 
+   
+3. 在需要引用包的项目根目录下执行
+
+```shell
+npm link infra-sdk-core
+``` 
+
+### 删除本地发布
+```shell
+npm run unpub
+``` 
+
 
 ### 依赖
 
 - umi-request
-  > 处理 HTTP 请求.
+  > 处理 HTTP 请求.   
 - aliyun oss sdk
-  > oss 操作相关的 js SDK
+  > oss 操作相关的 js SDK   
+- minio
+  > minio 操作相关的 js SDK   
 
 ### 感谢
 

@@ -15,20 +15,103 @@ const client = {
     secret: ""
 };
 
+const anonymousPrincipal: UserPrincipal = {
+    isAnonymous: true,
+    attachedAttributes: {},
+    getRoles: () => [],
+    hasRole: () => false,
+    hasAnyOfRoles: () => false
+};
+
+function tokenToPrincipal(token: OAuth2AccessToken): UserPrincipal {
+    const roles:string[] = [];
+    const attributes:{ [name:string]:string } = {};
+
+    for(const r in token.authorities){
+        if(r.indexOf("ROLE_") === 0){
+            roles.push(r);
+        }
+    }
+
+    const wellknownProperties = [
+        "user_id",
+        "access_token",
+        "token_type",
+        "refresh_token",
+        "expires_in",
+        "scope",
+        "two_factor_granted",
+        "user_id",
+        "authorities",
+        "username"
+    ];
+
+    for(const att in token){
+        if(wellknownProperties.indexOf(att) < 0){
+            attributes[att] = token[att]
+        }
+    }
+
+    const p = {
+        token: token,
+        roles: roles,
+        attributes: attributes,
+
+        get userId(): string | undefined {
+            return this.token.user_id;
+        },
+
+        get userName(): string | undefined {
+            return this.token.username;
+        },
+
+        get authorities(): string[] | undefined {
+            return this.token?.authorities || [];
+        },
+
+        get isTwoFactorGranted(): boolean | undefined {
+            return this.token?.two_factor_granted;
+        },
+
+        get attachedAttributes():{ [name:string]:string } {
+            return this.attributes;
+        },
+
+        getRoles(): string[] {
+            return this.roles;
+        },
+
+        get isAnonymous(): boolean {
+            return isNullOrEmptyString(this.token?.user_id)
+        },
+
+        hasRole(role: String): boolean {
+            return isNullOrEmptyString(this.roles?.find(item => item === role));
+        },
+
+        hasAnyOfRoles(...roles: String[]): boolean {
+            const rs = roles || [];
+            if (rs.length) {
+                for (const r in roles) {
+                    if (this.hasRole(r)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+    }
+    return p;
+
+}
+
+
 function createPrincipal(accessToken?: OAuth2AccessToken): UserPrincipal {
-    return accessToken
-        ? {
-              userId: accessToken.user_id,
-              userName: accessToken.user_name,
-              roles: accessToken.roles,
-              isTwoFactorGranted: accessToken.two_factor_granted,
-              isAnonymous: isNullOrEmptyString(accessToken.user_id)
-          }
-        : { isAnonymous: true };
+    return accessToken ? tokenToPrincipal(accessToken) : anonymousPrincipal;
 }
 
 const clientSession: OAuth2Session = {
-    user: { isAnonymous: true },
+    user: anonymousPrincipal,
     get isLogged(): boolean {
         return this.accessToken !== undefined && this.acccessTokenCreated !== undefined;
     },
@@ -56,7 +139,7 @@ const clientSession: OAuth2Session = {
     clearToken() {
         this.accessToken = undefined;
         this.acccessTokenCreated = undefined;
-        this.user = { isAnonymous: true };
+        this.user = anonymousPrincipal;
         sessionStorage.removeItem("clientInfo");
     },
 

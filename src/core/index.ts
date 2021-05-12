@@ -27,3 +27,8 @@ export interface OAuth2Session {
     loadToken: () => void;
     setClient: (clientId: string, secret: string) => void;
 }
+
+export enum BucketPolicy {
+    Private,
+    Public
+}

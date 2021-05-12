@@ -4,7 +4,8 @@ import {
     ResponseError,
     RequestMethod,
     RequestOptionsInit,
-    RequestResponse
+    RequestResponse,
+    ExtendOptionsWithResponse,
 } from "umi-request";
 import { RefreshTokenParam, OAuth2AccessToken, GrantTypes, LoginParam, CheckTokenResult } from "../oauth2";
 import { RequestOptions } from "./types";
@@ -107,7 +108,7 @@ const requestContext: Pick<RequestOptions, "accessTokenUrl" | "checkTokenUrl"> &
     checkTokenUrl: ""
 };
 
-export function initRequest(options: RequestOptions, session?: OAuth2Session) {
+export function initRequest(options: RequestOptions, session?: OAuth2Session, overrideOptions?: ExtendOptionsWithResponse): ExtendedRequestMethod {
     const { clientId, clientSecret } = options;
     requestContext.session = session || clientSession;
     requestContext.session.setClient(clientId, clientSecret);
@@ -115,6 +116,7 @@ export function initRequest(options: RequestOptions, session?: OAuth2Session) {
     requestContext.checkTokenUrl = options.checkTokenUrl;
 
     const request = extend({
+        ...(overrideOptions || {}),
         credentials: "omit", // 默认请求是否带上cookie
         getResponse: true
     });

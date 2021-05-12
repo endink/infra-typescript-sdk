@@ -1,9 +1,15 @@
+
 export interface UserPrincipal {
     userId?: string;
     userName?: string;
-    roles?: string[];
+    authorities?: string[];
     isTwoFactorGranted?: boolean;
     isAnonymous: boolean;
+    attachedAttributes: { [name:string]:string };
+
+    getRoles(): string[];
+    hasRole(role: string): boolean;
+    hasAnyOfRoles(...roles: string[]): Boolean;
 }
 
 export interface RefreshTokenParam {
@@ -35,9 +41,10 @@ export interface OAuth2AccessToken {
     scope: string;
     two_factor_granted?: boolean;
     user_id: string;
-    user_name: string;
+    username: string;
     refresh_token?: string;
-    roles: string[];
+    authorities: string[];
+    [propName: string]: any;
 }
 
 export interface CheckTokenResult {

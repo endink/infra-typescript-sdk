@@ -10,6 +10,7 @@ _roadhog-api-doc
 /lib
 /dist
 /.vscode
+/.local-pack
 
 # misc
 .DS_Store

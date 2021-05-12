@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    
     "outDir": "./lib",
     // "sourceMap": true,
     "noImplicitAny": false, //在表达式和声明上有隐含的 any类型时报错。
