@@ -73,7 +73,7 @@ export class MinioUtils {
         }
 
         const durationSeconds = minioContext?.stsToken?.expiration;
-        //提前三分钟过期
+        // 提前三分钟过期
         const durationMills = durationSeconds ? (durationSeconds - 180) * 1000 : 0;
 
         if (minioContext.stsToken === undefined || (minioContext.tokenTime + durationMills) <= Date.now().valueOf()) {
@@ -158,7 +158,7 @@ export class MinioUtils {
 
         const {response, data } = r;
         if (!r.response.ok) {
-            return { data: data as any, response: response }
+            return { data: data as any, response }
         }
 
         const { stsToken, config } = r.data;
