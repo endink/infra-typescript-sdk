@@ -8,7 +8,7 @@ import {
     ExtendOptionsWithResponse,
 } from "umi-request";
 import { RefreshTokenParam, OAuth2AccessToken, GrantTypes, LoginParam, CheckTokenResult } from "../oauth2";
-import { RequestOptions } from "./types";
+import { ErrorContext, CustomErrorHandler, RequestOptions } from "./types";
 import { OAuth2Session, ToastAdapter, ApplicationError } from "../core";
 import { clientSession } from "../oauth2/session";
 import { notNullOrEmptyString } from "../utils";
@@ -49,6 +49,16 @@ function translateError(data: ApplicationError, response: Response, options: Req
  * 异常处理程序
  */
 const handleError = (error: ResponseError, options: RequestOptions, skipNotify?: boolean) => {
+    const handlers: CustomErrorHandler[] = options.errorHandlers || [];
+    if (handlers.length) {
+        const errCtx: ErrorContext = { error, options, skipNotify };
+        const handled = handlers.some(v => {
+            v.handle(errCtx)
+        });
+        if (handled) {
+            return;
+        }
+    }
     const { response, data } = error;
     const skip = skipNotify || false;
     if (response) {
@@ -108,7 +118,7 @@ const requestContext: Pick<RequestOptions, "accessTokenUrl" | "checkTokenUrl"> &
     checkTokenUrl: ""
 };
 
-export function initRequest(options: RequestOptions, session?: OAuth2Session, overrideOptions?: ExtendOptionsWithResponse): ExtendedRequestMethod {
+export function initRequest(options: RequestOptions, session?: OAuth2Session): ExtendedRequestMethod {
     const { clientId, clientSecret } = options;
     requestContext.session = session || clientSession;
     requestContext.session.setClient(clientId, clientSecret);
@@ -116,7 +126,6 @@ export function initRequest(options: RequestOptions, session?: OAuth2Session, ov
     requestContext.checkTokenUrl = options.checkTokenUrl;
 
     const request = extend({
-        ...(overrideOptions || {}),
         credentials: "omit", // 默认请求是否带上cookie
         getResponse: true
     });
