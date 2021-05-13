@@ -116,7 +116,7 @@ export class MinioUtils {
     }
 
 
-    public ossUpload = async (
+    public upload = async (
         bucketPolicy: BucketPolicy,
         key: string,
         stream: any
@@ -139,6 +139,7 @@ export class MinioUtils {
         const minioClient = new Minio.Client({
             endPoint: cnf.host,
             port: cnf.port,
+            region: cnf.region,
             useSSL: (cnf.schema === "https"),
             accessKey: stsToken?.accessKey || "",
             secretKey: stsToken?.secretKey || ""
