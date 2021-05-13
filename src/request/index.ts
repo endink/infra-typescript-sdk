@@ -5,7 +5,6 @@ import {
     RequestMethod,
     RequestOptionsInit,
     RequestResponse,
-    ExtendOptionsWithResponse,
 } from "umi-request";
 import { RefreshTokenParam, OAuth2AccessToken, GrantTypes, LoginParam, CheckTokenResult } from "../oauth2";
 import { ErrorContext, CustomErrorHandler, RequestOptions } from "./types";
