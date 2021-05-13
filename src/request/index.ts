@@ -8,7 +8,7 @@ import {
 } from "umi-request";
 import { RefreshTokenParam, OAuth2AccessToken, GrantTypes, LoginParam, CheckTokenResult } from "../oauth2";
 import { ErrorContext, CustomErrorHandler, RequestOptions } from "./types";
-import { OAuth2Session, ToastAdapter, ApplicationError } from "../core";
+import { OAuth2Session, ApplicationError } from "../core";
 import { clientSession } from "../oauth2/session";
 import { notNullOrEmptyString } from "../utils";
 
