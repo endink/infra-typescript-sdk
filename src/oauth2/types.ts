@@ -1,11 +1,10 @@
-
 export interface UserPrincipal {
     userId?: string;
     userName?: string;
     authorities?: string[];
     isTwoFactorGranted?: boolean;
     isAnonymous: boolean;
-    attachedAttributes: { [name:string]:string };
+    attachedAttributes: { [name: string]: string };
 
     getRoles(): string[];
     hasRole(role: string): boolean;

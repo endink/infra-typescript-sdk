@@ -22,3 +22,7 @@ export interface AssumedCredentials {
 export interface UploadResult extends ApplicationError {
     etag: string;
 }
+
+export interface PresignedResult {
+    url: string;
+}

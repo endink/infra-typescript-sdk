@@ -4,7 +4,7 @@ import {
     ResponseError,
     RequestMethod,
     RequestOptionsInit,
-    RequestResponse,
+    RequestResponse
 } from "umi-request";
 import { RefreshTokenParam, OAuth2AccessToken, GrantTypes, LoginParam, CheckTokenResult } from "../oauth2";
 import { ErrorContext, CustomErrorHandler, RequestOptions } from "./types";
@@ -51,8 +51,8 @@ const handleError = (error: ResponseError, options: RequestOptions, skipNotify?:
     const handlers: CustomErrorHandler[] = options.errorHandlers || [];
     if (handlers.length) {
         const errCtx: ErrorContext = { error, options, skipNotify };
-        const handled = handlers.some(v => {
-            v.handle(errCtx)
+        const handled = handlers.some((v) => {
+            v.handle(errCtx);
         });
         if (handled) {
             return;
@@ -132,7 +132,7 @@ export function initRequest(options: RequestOptions, session?: OAuth2Session): E
     request.use(async (ctx, next) => {
         const op = ctx && ctx.req ? (ctx.req.options as ExtendedRequestOptionsInit) : undefined;
         if (op && typeof op.errorHandler === "undefined") {
-            op.errorHandler = e => handleError(e, options, op.skipNotifyError);
+            op.errorHandler = (e) => handleError(e, options, op.skipNotifyError);
         }
 
         if (op && op.skipAuth !== true && requestContext.session && requestContext.session.isLogged) {

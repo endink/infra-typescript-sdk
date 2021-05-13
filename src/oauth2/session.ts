@@ -24,11 +24,11 @@ const anonymousPrincipal: UserPrincipal = {
 };
 
 function tokenToPrincipal(token: OAuth2AccessToken): UserPrincipal {
-    const roles:string[] = [];
-    const attributes:{ [name:string]:string } = {};
+    const roles: string[] = [];
+    const attributes: { [name: string]: string } = {};
 
-    for(const r in token.authorities){
-        if(r.indexOf("ROLE_") === 0){
+    for (const r in token.authorities) {
+        if (r.indexOf("ROLE_") === 0) {
             roles.push(r);
         }
     }
@@ -46,9 +46,9 @@ function tokenToPrincipal(token: OAuth2AccessToken): UserPrincipal {
         "username"
     ];
 
-    for(const att in token){
-        if(wellknownProperties.indexOf(att) < 0){
-            attributes[att] = token[att]
+    for (const att in token) {
+        if (wellknownProperties.indexOf(att) < 0) {
+            attributes[att] = token[att];
         }
     }
 
@@ -73,7 +73,7 @@ function tokenToPrincipal(token: OAuth2AccessToken): UserPrincipal {
             return this.token?.two_factor_granted;
         },
 
-        get attachedAttributes():{ [name:string]:string } {
+        get attachedAttributes(): { [name: string]: string } {
             return this.attributes;
         },
 
@@ -82,11 +82,11 @@ function tokenToPrincipal(token: OAuth2AccessToken): UserPrincipal {
         },
 
         get isAnonymous(): boolean {
-            return isNullOrEmptyString(this.token?.user_id)
+            return isNullOrEmptyString(this.token?.user_id);
         },
 
         hasRole(role: string): boolean {
-            return isNullOrEmptyString(this.roles?.find(item => item === role));
+            return isNullOrEmptyString(this.roles?.find((item) => item === role));
         },
 
         hasAnyOfRoles(...roleNames: string[]): boolean {
@@ -100,11 +100,9 @@ function tokenToPrincipal(token: OAuth2AccessToken): UserPrincipal {
             }
             return false;
         }
-    }
+    };
     return p;
-
 }
-
 
 function createPrincipal(accessToken?: OAuth2AccessToken): UserPrincipal {
     return accessToken ? tokenToPrincipal(accessToken) : anonymousPrincipal;
