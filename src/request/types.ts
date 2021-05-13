@@ -8,7 +8,7 @@ export interface ErrorContext{
 }
 
 export interface CustomErrorHandler{
-    handle(context: ErrorContext): Boolean;
+    handle(context: ErrorContext): boolean;
 }
 
 
