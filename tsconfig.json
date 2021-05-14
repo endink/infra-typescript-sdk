@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
-    
+    "rootDir": "./src",
     "outDir": "./lib",
-    // "sourceMap": true,
+    "sourceMap": true,
     "noImplicitAny": false, //在表达式和声明上有隐含的 any类型时报错。
     "target": "es5", //指定ECMAScript目标版本 "ES3"（默认）
     "lib": ["dom", "dom.iterable", "esnext"], //    编译过程中需要引入的库文件的列表
@@ -21,9 +21,8 @@
     "baseUrl": "./",
     "paths": { "*": ["types/*"] },
     "declaration": true,
-    "sourceMap": true
     // "suppressImplicitAnyIndexErrors": true, //阻止对缺少索引签名的索引对象报错
   },
   "exclude": ["node_modules"],
-  "include": ["src/**/*", "test/*", "/src/typings.d.ts"]
+  "include": ["src/**/*", "/src/typings.d.ts"]
 }
