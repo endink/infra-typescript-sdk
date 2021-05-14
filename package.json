@@ -13,6 +13,8 @@
     "lint:fix": "tslint --fix -p tsconfig.json",
     "test": "jest",
     "test-c": "jest --coverage",
+    "debug":"node --inspect-brk node_modules/.bin/jest --runInBand --no-cache --no-watchman",
+    "debug-win": "node --inspect-brk ./node_modules/jest/bin/jest.js",
     "prettier": "prettier -c --write \"src/**\""
   },
   "jest": {

@@ -19,8 +19,9 @@
     // "noEmit": true,//不生成输出文件
     "jsx": "react",
     "baseUrl": "./",
-    "paths": { "*": ["types/*"], "@src/*": ["src/*"]},
-    "declaration": true
+    "paths": { "*": ["types/*"] },
+    "declaration": true,
+    "sourceMap": true
     // "suppressImplicitAnyIndexErrors": true, //阻止对缺少索引签名的索引对象报错
   },
   "exclude": ["node_modules"],

@@ -11,4 +11,5 @@ example/
 *.log
 webpack.config.js
 .local-pack/
+test/
 

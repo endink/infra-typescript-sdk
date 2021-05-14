@@ -79,6 +79,7 @@ export class MinioUtils {
                 method: "POST",
                 skipNotifyError: true
             });
+
             if (r.response.ok) {
                 minioContext.stsToken = r.data;
                 minioContext.tokenTime = Date.now().valueOf();
@@ -160,7 +161,8 @@ export class MinioUtils {
             region: cnf.region,
             useSSL: cnf.schema === "https",
             accessKey: stsToken?.accessKey || "",
-            secretKey: stsToken?.secretKey || ""
+            secretKey: stsToken?.secretKey || "",
+            sessionToken:stsToken?.sessionToken || "",
         });
 
         return await this.putObjectAsync(minioClient, bucketName, key, stream);
