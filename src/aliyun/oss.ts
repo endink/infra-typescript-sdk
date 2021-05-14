@@ -71,7 +71,7 @@ export class OssUtils {
         if (!config.response.ok) {
             return config as any;
         }
-        
+
         if (aliyunContext.stsToken === undefined || Number(aliyunContext.stsToken.expiration) <= Date.now().valueOf()) {
             const r = await this.request<AliyunStsToken>(this.options.stsTokenURL, {
                 method: "GET",
@@ -83,7 +83,7 @@ export class OssUtils {
                 return r as any; // 发生错误，类型无所谓
             }
         }
-        
+
         return { data: aliyunContext, response: { ok: true } } as any;
     }
 

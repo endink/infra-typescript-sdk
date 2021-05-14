@@ -1,3 +1,5 @@
+import { ApplicationError } from "../core";
+
 export interface MinioConfig {
     schema: string;
     host: string;
@@ -15,4 +17,12 @@ export interface AssumedCredentials {
      */
     expiration: number;
     sessionToken: string;
+}
+
+export interface UploadResult extends ApplicationError {
+    etag: string;
+}
+
+export interface PresignedResult {
+    url: string;
 }

@@ -1,16 +1,15 @@
 import { ResponseError } from "umi-request";
 import { ToastAdapter } from "../core";
 
-export interface ErrorContext{
+export interface ErrorContext {
     error: ResponseError;
-    options: RequestOptions; 
+    options: RequestOptions;
     skipNotify?: boolean;
 }
 
-export interface CustomErrorHandler{
+export interface CustomErrorHandler {
     handle(context: ErrorContext): boolean;
 }
-
 
 export interface RequestOptions {
     clientId: string;

@@ -18,6 +18,5 @@ export interface AliyunOssConfig {
 }
 
 export interface AliyunConfig {
-    oss: AliyunOssConfig
+    oss: AliyunOssConfig;
 }
-

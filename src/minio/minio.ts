@@ -1,9 +1,10 @@
 import { isNullOrEmptyString } from "../utils";
-import { RequestResponse } from "umi-request";
+import { RequestResponse, ResponseError } from "umi-request";
 import { AssumedCredentials, MinioConfig } from ".";
 import { ExtendedRequestMethod, ExtendedRequestOptionsInit } from "../request";
-import { BucketPolicy } from "../core";
+import { ApplicationError, BucketPolicy } from "../core";
 import * as Minio from "minio";
+import { PresignedResult, UploadResult } from "./types";
 
 export interface MinioOptions {
     configURL: string;
@@ -17,16 +18,14 @@ interface MinioContext {
     config?: MinioConfig;
 }
 
-const minioContext: MinioContext = { tokenTime : Date.now().valueOf() };
+const minioContext: MinioContext = { tokenTime: Date.now().valueOf() };
 
 type SimpleStringValue = {
-    value: string
-}
+    value: string;
+};
 
 export class MinioUtils {
-    private constructor(private request: ExtendedRequestMethod, public options: MinioOptions){
-        
-    }
+    private constructor(private request: ExtendedRequestMethod, public options: MinioOptions) {}
 
     static create(request: ExtendedRequestMethod, serverBaseUrl: string) {
         const url = (serverBaseUrl || "").trim();
@@ -65,37 +64,39 @@ export class MinioUtils {
         return { response: { ok: true }, data: minioContext.config } as RequestResponse<MinioConfig>;
     }
 
-    public async getMinioContext(): Promise<RequestResponse<MinioContext>> {
+    public async getMinioContext(): Promise<RequestResponse<MinioContext & ApplicationError>> {
         const config = await this.fetchConfig();
         if (!config.response.ok) {
             return config as any;
         }
 
-        if (minioContext.stsToken === undefined || (minioContext.stsToken.expiration * 1000 + minioContext.tokenTime) <= Date.now().valueOf()) {
+        const durationSeconds = minioContext?.stsToken?.expiration;
+        // 提前三分钟过期
+        const durationMills = durationSeconds ? (durationSeconds - 180) * 1000 : 0;
+
+        if (minioContext.stsToken === undefined || minioContext.tokenTime + durationMills <= Date.now().valueOf()) {
             const r = await this.request<AssumedCredentials>(this.options.stsTokenURL, {
                 method: "POST",
                 skipNotifyError: true
             });
             if (r.response.ok) {
                 minioContext.stsToken = r.data;
-                minioContext.tokenTime = Date.now().valueOf()
+                minioContext.tokenTime = Date.now().valueOf();
             } else {
                 return r as any; // 发生错误，类型无所谓
             }
         }
-        
+
         return { data: minioContext, response: { ok: true } } as any;
     }
-
 
     public generateObjectUrl(key: string): string | undefined {
         const config = minioContext.config;
         if (config && !isNullOrEmptyString(config.publicBucket)) {
-            const bucket = config.publicBucket;
             const file = key.startsWith("/") ? key.substr(1, key.length - 1) : key;
-            if(config.port){
+            if (config.port) {
                 return `${config.schema}://${config.host}:${config.port}/${config.publicBucket}/${file}`;
-            }else{
+            } else {
                 return `${config.schema}://${config.host}/${config.publicBucket}/${file}`;
             }
         }
@@ -104,56 +105,64 @@ export class MinioUtils {
     public async presignedObjectUrl(
         filePath: string,
         resOptions?: Omit<ExtendedRequestOptionsInit, "method" | "data">
-    ): Promise<string> {
-        const file= encodeURI(filePath)
+    ): Promise<RequestResponse<PresignedResult & ApplicationError>> {
+        const file = encodeURI(filePath);
         const requestOptions = { ...(resOptions || {}), method: "POST" };
-        const { response, data } = await this.request<SimpleStringValue>(`${this.options.genUrl}?key=${file}`, requestOptions);
-        if (response.ok) {
-            return data.value;
-        } else {
-            return "";
-        }
+        const { response, data } = await this.request<SimpleStringValue & ApplicationError>(
+            `${this.options.genUrl}?key=${file}`,
+            requestOptions
+        );
+        return { data: { url: (data?.value || "") }, response }
     }
 
-
-    public ossUpload = async (
-        bucketPolicy: BucketPolicy,
-        key: string,
+    private putObjectAsync(
+        client: Minio.Client,
+        bucketName: string,
+        objectName: string,
         stream: any
-    ): Promise<{etag:string}> => {
-        const context = await this.getMinioContext();
+    ): Promise<RequestResponse<UploadResult>> {
+        return new Promise((resolve, reject) => {
+            client.putObject(bucketName, objectName, stream, (err, etag) => {
+                if (err === undefined || err === null) {
+                    resolve({ data: { etag }, response: { ok: true, status: 200, type: "default" } as any });
+                } else {
+                    const data: UploadResult = { etag };
+                    if (typeof err === "string") {
+                        data.error = err as any;
+                        data.error_description = err as any;
+                    } else {
+                        data.error = err?.name;
+                        data.error_description = err?.message;
+                    }
 
-        if (!context.response.ok) {
-            return context as any;
+                    reject({ data, response: { ok: false, status: 500 } as any });
+                }
+            });
+        });
+    }
+
+    public async upload(bucketPolicy: BucketPolicy, key: string, stream: any): Promise<RequestResponse<UploadResult>> {
+        const r = await this.getMinioContext();
+
+        const { response, data } = r;
+        if (!r.response.ok) {
+            return { data: data as any, response };
         }
 
-        const { stsToken, config } = context.data;
-        const cnf = {...config} as MinioConfig
-
-        if(!cnf.port){
-            cnf.port = (cnf.schema === "https") ? 443 : 80;
-        }
+        const { stsToken, config } = r.data;
+        const cnf = config as MinioConfig;
 
         const bucketName = bucketPolicy === BucketPolicy.Private ? cnf.privateBucket : cnf.publicBucket;
 
         const minioClient = new Minio.Client({
             endPoint: cnf.host,
             port: cnf.port,
-            useSSL: (cnf.schema === "https"),
+            region: cnf.region,
+            useSSL: cnf.schema === "https",
             accessKey: stsToken?.accessKey || "",
             secretKey: stsToken?.secretKey || ""
         });
 
-        return new Promise((resolve, reject)=>{
-            minioClient.putObject(bucketName, key, stream, (err, etag)=>{
-                if(err !== undefined && err !== null){
-                    reject(err);
-                }else{
-                    resolve({ etag });
-                }
-            });
-        })
-
-    };
-
+        return await this.putObjectAsync(minioClient, bucketName, key, stream);
+    }
 }
