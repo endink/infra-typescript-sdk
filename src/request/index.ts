@@ -117,6 +117,16 @@ const requestContext: Pick<RequestOptions, "accessTokenUrl" | "checkTokenUrl"> &
     checkTokenUrl: ""
 };
 
+export function initRequestNoneOAuth2() : ExtendedRequestMethod {
+    return initRequest({
+        clientId: "",
+        clientSecret:"",
+        noneOAuth2: true,
+        accessTokenUrl:"",
+        checkTokenUrl:""
+    })
+}
+
 export function initRequest(options: RequestOptions, session?: OAuth2Session): ExtendedRequestMethod {
     const { clientId, clientSecret } = options;
     requestContext.session = session || clientSession;
@@ -129,13 +139,14 @@ export function initRequest(options: RequestOptions, session?: OAuth2Session): E
         getResponse: true
     });
 
+    const noOauth2 = options.noneOAuth2 || false;
     request.use(async (ctx, next) => {
         const op = ctx && ctx.req ? (ctx.req.options as ExtendedRequestOptionsInit) : undefined;
         if (op && typeof op.errorHandler === "undefined") {
             op.errorHandler = e => handleError(e, options, op.skipNotifyError);
         }
 
-        if (op && op.skipAuth !== true && requestContext.session && requestContext.session.isLogged) {
+        if (noOauth2 !== true && op?.skipAuth !== true && requestContext.session && requestContext.session.isLogged) {
             if (requestContext.session.isTokenExpired) {
                 const data: RefreshTokenParam = {
                     grant_type: GrantTypes.GRANT_TYPE_REFRESH_TOKEN,

@@ -11,8 +11,12 @@
     "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
     "lint": "tslint -p tsconfig.json",
     "lint:fix": "tslint --fix -p tsconfig.json",
-    "test": "jest --config jestconfig.json",
+    "test": "jest",
+    "test-c": "jest --coverage",
     "prettier": "prettier -c --write \"src/**\""
+  },
+  "jest": {
+    "testEnvironment": "node"
   },
   "keywords": [
     "npm",

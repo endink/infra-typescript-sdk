@@ -6,6 +6,7 @@ const htmlWebpackPlugin = new HtmlWebpackPlugin({
 })
 
 module.exports = {
+    root: [ "<rootDir>/test", "<rootDir>/src" ],
     entry: path.join(__dirname, "./example/src/index.tsx"),
     output: {
         path: path.join(__dirname, "example/dist"),

@@ -19,10 +19,10 @@
     // "noEmit": true,//不生成输出文件
     "jsx": "react",
     "baseUrl": "./",
-    "paths": { "*": ["types/*"] },
+    "paths": { "*": ["types/*"], "@src/*": ["src/*"]},
     "declaration": true
     // "suppressImplicitAnyIndexErrors": true, //阻止对缺少索引签名的索引对象报错
   },
   "exclude": ["node_modules"],
-  "include": ["src/**/*", "/src/typings.d.ts"]
+  "include": ["src/**/*", "test/*", "/src/typings.d.ts"]
 }
