@@ -116,6 +116,7 @@ export class MinioUtils {
         return { data: { url: (data?.value || "") }, response }
     }
 
+
     private putObjectAsync(
         client: Minio.Client,
         bucketName: string,
