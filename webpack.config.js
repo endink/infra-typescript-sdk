@@ -6,7 +6,8 @@ const htmlWebpackPlugin = new HtmlWebpackPlugin({
 
 module.exports = {
     target:"web",
-    entry: path.join(__dirname, "src/minio/index.ts"),
+    mode: "development",
+    entry: path.join(__dirname, "src/index.ts"),
     output: {
         path: path.join(__dirname, "example/dist"),
         filename: "bundle.js",
