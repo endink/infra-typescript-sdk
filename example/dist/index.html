@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>infra test</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <script type="text/javascript" src="bundle.js"></script>
+    <script type="text/javascript">
+        console.log(test.MinioUtils);
+        var minioUtils = test.MinioUtils.createForTesting("http://localhost:9898");
+        console.log(minioUtils);
+
+        function fileSelected(file) {
+            if (file) {
+                minioUtils.upload("tttt.jpg", file).then(function(res){
+                    console.log(res);
+                    document.querySelector("#file").innerHTML = res.data.url;
+                    document.querySelector("#link").setAttribute("href", res.data.url);
+                    document.querySelector("#img").setAttribute("src", res.data.url);
+                });
+            }
+        }
+        </script>
+</head>
+
+<body>
+    <input type="file" id="upload">
+    <br />
+    <a id="link" href="">
+        <div id="file">
+
+        </div>
+        <img id="img" src="" >
+    </a>
+</body>
+
+
+<script type="text/javascript">
+    const input = document.querySelector("#upload");
+input.addEventListener('change',function(){
+	// 通过onchange事件获取files,函数要使用function定义,箭头函数没有this
+	const files = this.files;
+},false);
+
+input.addEventListener('change',(e) => {
+    e.preventDefault();
+	// 这个本质还是通过Dom获取文件
+    const file = e.target.files[0];
+    fileSelected(file);
+    return false;
+},false);
+</script>
+</html>
