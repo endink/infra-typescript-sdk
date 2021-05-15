@@ -12,7 +12,8 @@
             ],
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen",
-            "port": 9229
+            "port": 9229,
+            "sourceMaps": true
         },
         {
             "name": "debug win",
@@ -25,7 +26,8 @@
             ],
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen",
-            "port": 9229
+            "port": 9229,
+            "sourceMaps": true
           }
     ]
   }

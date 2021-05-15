@@ -15,10 +15,8 @@
     "test-c": "jest --coverage",
     "debug": "node --inspect-brk node_modules/.bin/jest --runInBand --no-cache --no-watchman",
     "debug-win": "node --inspect-brk ./node_modules/jest/bin/jest.js",
-    "pretty": "prettier -c --write \"src/**\""
-  },
-  "jest": {
-    "testEnvironment": "node"
+    "pretty": "prettier -c --write \"src/**\"",
+    "gen":"webpack"
   },
   "keywords": [
     "npm",

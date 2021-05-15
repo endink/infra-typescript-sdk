@@ -8,8 +8,12 @@ _roadhog-api-doc
 
 # production
 /lib
-/dist
+/dist/*.txt
+/dist/*.map
+/dist/*.js
+
 /.local-pack
+/example
 
 # misc
 .DS_Store

@@ -28,7 +28,9 @@ test("testPresignedUploadUrl", async () => {
 
 
 test("testUpload", async () => {
-   const blob = new Blob(["xxxxx"], { type: "text/plain" });
+   const blob = new Blob(["\ufeff","xxxxx"], { type: "text/plain", endings:"transparent" });
+
+   console.log(blob);
 
    const { response, data } = await minioUtils.upload("test/aaa.txt", blob);
    expect(response.ok).toBeTruthy();
@@ -37,6 +39,10 @@ test("testUpload", async () => {
    expect(data.error).toBeUndefined();
    expect(data.url).toBeDefined();
    expect(data.expireInSeconds > 0).toBeTruthy();
+
+   const r = await request.get(data.url);
+   expect(r.response.ok).toBeTruthy();
+   expect(r.data).toBe("xxxxx");
 
    console.log(data);
 });

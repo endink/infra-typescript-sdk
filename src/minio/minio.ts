@@ -1,7 +1,7 @@
 import { isNullOrEmptyString } from "../utils";
 import { RequestResponse } from "umi-request";
 import { AssumedCredentials, MinioConfig } from ".";
-import { ExtendedRequestMethod, ExtendedRequestOptionsInit } from "../request";
+import { ExtendedRequestMethod, ExtendedRequestOptionsInit, initRequestNoneOAuth2 } from "../request";
 import { ApplicationError, BucketPolicy } from "../core";
 import { PresignedUrl } from "./types";
 
@@ -23,7 +23,11 @@ const minioContext: MinioContext = { tokenTime: Date.now().valueOf() };
 export class MinioUtils {
     private constructor(private request: ExtendedRequestMethod, public options: MinioOptions) {}
 
-    static create(request: ExtendedRequestMethod, serverBaseUrl: string) {
+    public static createForTesting(serverBaseUrl: string): MinioUtils{
+        return this.create(initRequestNoneOAuth2(), serverBaseUrl);
+    }
+
+    public static create(request: ExtendedRequestMethod, serverBaseUrl: string):MinioUtils {
         const url = (serverBaseUrl || "").trim();
         const base = url.endsWith("/") ? url.substr(0, url.length - 1) : url;
         const options: MinioOptions = {
@@ -133,7 +137,7 @@ export class MinioUtils {
     private getFileName(key: string): string {
         const correctKey = key.replace("\\", "/");
         const index = correctKey.lastIndexOf("/");
-        return correctKey.substr(index);
+        return correctKey.substr(index + 1);
     }
 
     public async upload(
@@ -154,19 +158,17 @@ export class MinioUtils {
 
         const r = await this.getMinioContext();
         const fileName = this.getFileName(key);
-        const length = typeof blobOrString === "string" ? blobOrString.length : blobOrString.size;
         const blob = typeof blobOrString === "string" ? new Blob([blobOrString], { type: "plain/text" }) : blobOrString;
 
         const presignedResult = await this.presignedUploadUrl(key, bucketPolicy);
 
         if (presignedResult.response.ok) {
-            const formData = new FormData();
-            formData.append("file", blob, fileName);
 
             const { url, contentType } = presignedResult.data;
-            const { response, data } = await this.request.put(url, {
-                data: formData,
-                headers: { "Content-Length": `${length}`, "Content-Type":"multipart/form-data" }
+            const { response, data } = await this.request(url, {
+                headers:{ "Content-Type": contentType, "Content-Length": blob.size.toString(), "Accept":"*/*" },
+                method:"PUT",
+                data: blobOrString
             });
 
             if (response.ok) {
