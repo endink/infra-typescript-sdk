@@ -20,9 +20,11 @@ export interface AssumedCredentials {
 }
 
 export interface UploadResult extends ApplicationError {
-    etag: string;
+    url: string;
 }
 
-export interface PresignedResult {
+export interface PresignedUrl {
     url: string;
+    expireInSeconds: number;
+    contentType: string;
 }

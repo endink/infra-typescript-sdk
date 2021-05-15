@@ -20,5 +20,5 @@ export interface RequestOptions {
     errorDescriber?: Record<string, string>;
     httpCodeDescriber?: Record<string, string>;
     errorHandlers?: CustomErrorHandler[];
-    noneOAuth2?: boolean
+    noneOAuth2?: boolean;
 }

@@ -1,15 +1,15 @@
 import { isNullOrEmptyString } from "../utils";
-import { RequestResponse, ResponseError } from "umi-request";
+import { RequestResponse } from "umi-request";
 import { AssumedCredentials, MinioConfig } from ".";
 import { ExtendedRequestMethod, ExtendedRequestOptionsInit } from "../request";
 import { ApplicationError, BucketPolicy } from "../core";
-import * as Minio from "minio";
-import { PresignedResult, UploadResult } from "./types";
+import { PresignedUrl } from "./types";
 
 export interface MinioOptions {
     configURL: string;
     stsTokenURL: string;
-    genUrl: string;
+    presignReadUrl: string;
+    presignUploadURL: string;
 }
 
 interface MinioContext {
@@ -20,10 +20,6 @@ interface MinioContext {
 
 const minioContext: MinioContext = { tokenTime: Date.now().valueOf() };
 
-type SimpleStringValue = {
-    value: string;
-};
-
 export class MinioUtils {
     private constructor(private request: ExtendedRequestMethod, public options: MinioOptions) {}
 
@@ -33,7 +29,8 @@ export class MinioUtils {
         const options: MinioOptions = {
             configURL: `${base}/objects/cnf`,
             stsTokenURL: `${base}/objects/assume-role`,
-            genUrl: `${base}/objects/pre-sign-url`
+            presignReadUrl: `${base}/objects/pre-sign-url`,
+            presignUploadURL: `${base}/objects/pre-sign-upload`
         };
 
         return new MinioUtils(request, options);
@@ -91,7 +88,7 @@ export class MinioUtils {
         return { data: minioContext, response: { ok: true } } as any;
     }
 
-    public generateObjectUrl(key: string): string | undefined {
+    public generateObjectUrl(key: string): string {
         const config = minioContext.config;
         if (config && !isNullOrEmptyString(config.publicBucket)) {
             const file = key.startsWith("/") ? key.substr(1, key.length - 1) : key;
@@ -101,71 +98,92 @@ export class MinioUtils {
                 return `${config.schema}://${config.host}/${config.publicBucket}/${file}`;
             }
         }
+        return "";
     }
 
     public async presignedObjectUrl(
-        filePath: string,
+        key: string,
         resOptions?: Omit<ExtendedRequestOptionsInit, "method" | "data">
-    ): Promise<RequestResponse<PresignedResult & ApplicationError>> {
-        const file = encodeURI(filePath);
+    ): Promise<RequestResponse<PresignedUrl & ApplicationError>> {
+        const file = encodeURI(key);
         const requestOptions = { ...(resOptions || {}), method: "POST" };
-        const { response, data } = await this.request<SimpleStringValue & ApplicationError>(
-            `${this.options.genUrl}?key=${file}`,
+        return await this.request<PresignedUrl & ApplicationError>(
+            `${this.options.presignReadUrl}?key=${file}`,
             requestOptions
         );
-        return { data: { url: (data?.value || "") }, response }
     }
 
-
-    private putObjectAsync(
-        client: Minio.Client,
-        bucketName: string,
-        objectName: string,
-        stream: any
-    ): Promise<RequestResponse<UploadResult>> {
-        return new Promise((resolve, reject) => {
-            client.putObject(bucketName, objectName, stream, (err, etag) => {
-                if (err === undefined || err === null) {
-                    resolve({ data: { etag }, response: { ok: true, status: 200, type: "default" } as any });
-                } else {
-                    const data: UploadResult = { etag };
-                    if (typeof err === "string") {
-                        data.error = err as any;
-                        data.error_description = err as any;
-                    } else {
-                        data.error = err?.name;
-                        data.error_description = err?.message;
-                    }
-
-                    reject({ data, response: { ok: false, status: 500 } as any });
-                }
-            });
-        });
-    }
-
-    public async upload(bucketPolicy: BucketPolicy, key: string, stream: any): Promise<RequestResponse<UploadResult>> {
+    public async presignedUploadUrl(
+        key: string,
+        bucket: BucketPolicy = BucketPolicy.Public,
+        resOptions?: Omit<ExtendedRequestOptionsInit, "method" | "data">
+    ): Promise<RequestResponse<PresignedUrl & ApplicationError>> {
         const r = await this.getMinioContext();
-
-        const { response, data } = r;
         if (!r.response.ok) {
-            return { data: data as any, response };
+            return r as any;
+        }
+        const file = encodeURI(key);
+        const requestOptions = { ...(resOptions || {}), method: "POST" };
+        return await this.request<PresignedUrl & ApplicationError>(
+            `${this.options.presignUploadURL}?key=${file}&b=${bucket}`,
+            requestOptions
+        );
+    }
+
+    private getFileName(key: string): string {
+        const correctKey = key.replace("\\", "/");
+        const index = correctKey.lastIndexOf("/");
+        return correctKey.substr(index);
+    }
+
+    public async upload(
+        key: string,
+        blobOrString: Blob | string,
+        bucketPolicy: BucketPolicy = BucketPolicy.Public
+    ): Promise<RequestResponse<PresignedUrl & ApplicationError>> {
+        const fileAPI = window.File && window.FileReader && window.FileList && window.Blob;
+        if (!fileAPI) {
+            return {
+                response: { ok: false, status: 0, statusText: "file api unsupported" } as any,
+                data: {
+                    error: "file_api_unsupported",
+                    error_description: "file api unsupported by current broswser."
+                } as any
+            };
         }
 
-        const { stsToken, config } = r.data;
-        const cnf = config as MinioConfig;
+        const r = await this.getMinioContext();
+        const fileName = this.getFileName(key);
+        const length = typeof blobOrString === "string" ? blobOrString.length : blobOrString.size;
+        const blob = typeof blobOrString === "string" ? new Blob([blobOrString], { type: "plain/text" }) : blobOrString;
 
-        const bucketName = bucketPolicy === BucketPolicy.Private ? cnf.privateBucket : cnf.publicBucket;
+        const presignedResult = await this.presignedUploadUrl(key, bucketPolicy);
 
-        const minioClient = new Minio.Client({
-            endPoint: cnf.host,
-            port: cnf.port,
-            region: cnf.region,
-            useSSL: cnf.schema === "https",
-            accessKey: stsToken?.accessKey || "",
-            secretKey: stsToken?.secretKey || "",
-            sessionToken:stsToken?.sessionToken || "",
-        });
+        if (presignedResult.response.ok) {
+            const formData = new FormData();
+            formData.append("file", blob, fileName);
 
-        return await this.putObjectAsync(minioClient, bucketName, key, stream);
+            const { url, contentType } = presignedResult.data;
+            const { response, data } = await this.request.put(url, {
+                data: formData,
+                headers: { "Content-Length": `${length}`, "Content-Type":"multipart/form-data" }
+            });
+
+            if (response.ok) {
+                if (bucketPolicy === BucketPolicy.Private) {
+                    const presigned = await this.presignedObjectUrl(key);
+                    if (presigned.response.ok) {
+                        return presigned;
+                    }
+                }
+                return {
+                    response: { ok: true, status: 200 },
+                    data: { url: this.generateObjectUrl(key), expireInSeconds: Number.MAX_VALUE, contentType }
+                } as any;
+            }
+            return { response, data } as any;
+        } else {
+            return presignedResult as any;
+        }
     }
 }

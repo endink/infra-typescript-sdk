@@ -117,14 +117,14 @@ const requestContext: Pick<RequestOptions, "accessTokenUrl" | "checkTokenUrl"> &
     checkTokenUrl: ""
 };
 
-export function initRequestNoneOAuth2() : ExtendedRequestMethod {
+export function initRequestNoneOAuth2(): ExtendedRequestMethod {
     return initRequest({
         clientId: "",
-        clientSecret:"",
+        clientSecret: "",
         noneOAuth2: true,
-        accessTokenUrl:"",
-        checkTokenUrl:""
-    })
+        accessTokenUrl: "",
+        checkTokenUrl: ""
+    });
 }
 
 export function initRequest(options: RequestOptions, session?: OAuth2Session): ExtendedRequestMethod {

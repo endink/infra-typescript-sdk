@@ -7,7 +7,7 @@
     "start": "webpack-dev-server --open development",
     "pub": "local-package-publisher -u&&local-package-publisher -p",
     "unpub": "local-package-publisher -u",
-    "build": "tsc",
+    "build": "tsc --excludeDirectories test",
     "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
     "lint": "tslint -p tsconfig.json",
     "lint:fix": "tslint --fix -p tsconfig.json",
@@ -15,7 +15,7 @@
     "test-c": "jest --coverage",
     "debug": "node --inspect-brk node_modules/.bin/jest --runInBand --no-cache --no-watchman",
     "debug-win": "node --inspect-brk ./node_modules/jest/bin/jest.js",
-    "prettier": "prettier -c --write \"src/**\""
+    "pretty": "prettier -c --write \"src/**\""
   },
   "jest": {
     "testEnvironment": "node"
@@ -40,7 +40,6 @@
   "homepage": "https://github.com/endink/infra-typescript-sdk",
   "dependencies": {
     "ali-oss": "^6.15.2",
-    "minio": "^7.0.18",
     "umi-request": "^1.3.5"
   },
   "devDependencies": {
@@ -48,7 +47,6 @@
     "@types/enzyme": "^3.10.8",
     "@types/html-webpack-plugin": "^3.2.5",
     "@types/jest": "^26.0.23",
-    "@types/minio": "^7.0.7",
     "@types/node": "^15.0.2",
     "@types/webpack": "^5.28.0",
     "css-loader": "^5.2.4",

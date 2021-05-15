@@ -1,5 +1,3 @@
-import { generateUUID } from "../src/utils";
-import { BucketPolicy } from "../src/core";
 import { MinioUtils } from "../src/minio";
 import { initRequestNoneOAuth2 } from "../src/request";
 
@@ -7,20 +5,38 @@ const request = initRequestNoneOAuth2();
 
 const minioUtils = MinioUtils.create(request, "http://localhost:9898");
 
-test("testAssumeRole", async ()=>{
+test("testFetchConfig", async () => {
    const resp = await minioUtils.fetchConfig(false, true);
-   const{ response, data }= resp;
+   const { response, data } = resp;
    expect(response.ok).toBeTruthy();
 });
 
-test("testAssumeRoleUpload", async ()=>{
-    const resp = await minioUtils.fetchConfig(false, true);
-    expect(resp.response.ok).toBeTruthy();
+test("testPresignedUploadUrl", async () => {
+   const resp = await minioUtils.fetchConfig(false, true);
+   expect(resp.response.ok).toBeTruthy();
 
-    const file = generateUUID()
-    const uploadResp = await minioUtils.upload(BucketPolicy.Public, `aaa/${file}.txt`, "XXXXXX");
-    const { response, data } = uploadResp;
-    expect(response.ok).toBeTruthy();
-    expect(response.status).toEqual(200);
-    expect(data.etag.length >0).toBeTruthy();
- });
+   const { response, data } = await minioUtils.presignedUploadUrl("kkkk/aaa.jpg");
+   expect(response.ok).toBeTruthy();
+
+   expect(data.contentType?.length).toBeDefined()
+   expect(data.error).toBeUndefined();
+   expect(data.url).toBeDefined();
+   expect(data.expireInSeconds > 0).toBeTruthy();
+
+   console.log(data);
+});
+
+
+test("testUpload", async () => {
+   const blob = new Blob(["xxxxx"], { type: "text/plain" });
+
+   const { response, data } = await minioUtils.upload("test/aaa.txt", blob);
+   expect(response.ok).toBeTruthy();
+
+   expect(data.contentType?.length).toBeDefined()
+   expect(data.error).toBeUndefined();
+   expect(data.url).toBeDefined();
+   expect(data.expireInSeconds > 0).toBeTruthy();
+
+   console.log(data);
+});
