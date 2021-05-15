@@ -175,7 +175,10 @@ Minio 对象上传文件 (公共访问存储桶)
 ```typescript
 import { minio } from "./minio"
 
-const etag = await minio.ossUpload(BucketPolicy.Public "/test/aaa.jpg", file);
+const { url, expireInSeconds, contentType } = await minio.upload("/test/aaa.jpg", file, BucketPolicy.Public);
+
+img.src = url; //在 img 上显示 url
+
 ``` 
 > 传入 **BucketPolicy.Private** 上传至私有访问存储桶， file 支持 buffer/stream/string 。
 ---
