@@ -2,7 +2,7 @@
   "compilerOptions": {
     "rootDir": "./src",
     "outDir": "./lib",
-    "sourceMap": true,
+    "sourceMap": false,
     "noImplicitAny": false, //在表达式和声明上有隐含的 any类型时报错。
     "target": "es5", //指定ECMAScript目标版本 "ES3"（默认）
     "lib": ["dom", "dom.iterable", "esnext"], //    编译过程中需要引入的库文件的列表
