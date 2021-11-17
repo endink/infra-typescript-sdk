@@ -1,4 +1,4 @@
-import { isNullOrEmptyString } from "../utils";
+import { isNullOrBlankString } from "../utils";
 import { RequestResponse } from "umi-request";
 import { AssumedCredentials, MinioConfig } from ".";
 import { ExtendedRequestMethod, ExtendedRequestOptionsInit, initRequestNoneOAuth2 } from "../request";
@@ -94,7 +94,7 @@ export class MinioUtils {
 
     public generateObjectUrl(key: string): string {
         const config = minioContext.config;
-        if (config && !isNullOrEmptyString(config.publicBucket)) {
+        if (config && !isNullOrBlankString(config.publicBucket)) {
             const file = key.startsWith("/") ? key.substr(1, key.length - 1) : key;
             if (config.port) {
                 return `${config.schema}://${config.host}:${config.port}/${config.publicBucket}/${file}`;

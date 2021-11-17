@@ -7,10 +7,10 @@ import {
     RequestResponse
 } from "umi-request";
 import { RefreshTokenParam, OAuth2AccessToken, GrantTypes, LoginParam, CheckTokenResult } from "../oauth2";
-import { ErrorContext, CustomErrorHandler, RequestOptions } from "./types";
+import { ErrorContext, CustomErrorHandler, RequestOptions, RequestContext } from "./types";
 import { OAuth2Session, ApplicationError } from "../core";
 import { clientSession } from "../oauth2/session";
-import { notNullOrEmptyString } from "../utils";
+import { isNotNullOrBlankString } from "../utils";
 
 const codeMessage = {
     200: "服务器成功返回请求的数据。",
@@ -33,7 +33,7 @@ const codeMessage = {
 function translateError(data: ApplicationError, response: Response, options: RequestOptions): ApplicationError {
     const { errorDescriber, httpCodeDescriber } = options;
     let msg: any;
-    if (data !== undefined && notNullOrEmptyString(data.error)) {
+    if (data !== undefined && isNotNullOrBlankString(data.error)) {
         const desc = errorDescriber ? errorDescriber[data.error!!] : data.error_description;
         msg = desc || `未处理错误: ${data.error}`;
     } else {
@@ -112,7 +112,7 @@ export type OAuth2RequestOptions = Omit<
     "data" | "method" | "headers" | "requestType" | "skipAuth"
 >;
 
-const requestContext: Pick<RequestOptions, "accessTokenUrl" | "checkTokenUrl"> & { session?: OAuth2Session } = {
+const requestContext:RequestContext  = {
     accessTokenUrl: "",
     checkTokenUrl: ""
 };
@@ -225,3 +225,5 @@ export function initRequest(options: RequestOptions, session?: OAuth2Session): E
 
     return req;
 }
+
+

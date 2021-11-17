@@ -1,6 +1,6 @@
 import { UserPrincipal, OAuth2AccessToken } from "./types";
 import { OAuth2Session } from "../core";
-import { isNullOrEmptyString } from "../utils";
+import { isNullOrBlankString } from "../utils";
 
 interface SaveObject {
     token: OAuth2AccessToken;
@@ -82,11 +82,11 @@ function tokenToPrincipal(token: OAuth2AccessToken): UserPrincipal {
         },
 
         get isAnonymous(): boolean {
-            return isNullOrEmptyString(this.token?.user_id);
+            return isNullOrBlankString(this.token?.user_id);
         },
 
         hasRole(role: string): boolean {
-            return isNullOrEmptyString(this.roles?.find((item) => item === role));
+            return isNullOrBlankString(this.roles?.find((item) => item === role));
         },
 
         hasAnyOfRoles(...roleNames: string[]): boolean {

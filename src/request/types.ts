@@ -1,5 +1,5 @@
 import { ResponseError } from "umi-request";
-import { ToastAdapter } from "../core";
+import { OAuth2Session, ToastAdapter } from "../core";
 
 export interface ErrorContext {
     error: ResponseError;
@@ -22,3 +22,5 @@ export interface RequestOptions {
     errorHandlers?: CustomErrorHandler[];
     noneOAuth2?: boolean;
 }
+
+export type RequestContext = Pick<RequestOptions, "accessTokenUrl" | "checkTokenUrl"> & { session?: OAuth2Session };
