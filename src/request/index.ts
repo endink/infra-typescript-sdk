@@ -136,7 +136,8 @@ export function initRequest(options: RequestOptions, session?: OAuth2Session): E
 
     const request = extend({
         credentials: "omit", // 默认请求是否带上cookie
-        getResponse: true
+        getResponse: true,
+        throwErrIfParseFail: true,
     });
 
     const noOauth2 = options.noneOAuth2 || false;
@@ -175,6 +176,11 @@ export function initRequest(options: RequestOptions, session?: OAuth2Session): E
             if (headers["Authorization"] === undefined) {
                 headers["Authorization"] = requestContext.session.getAuthTokenHeaderValue();
             }
+            if (headers["Accept"] === undefined) {
+                headers["Accept"] = "application/json";
+            }
+            ctx.req.options.headers = headers;
+
             await next();
         } else {
             await next();
@@ -186,24 +192,34 @@ export function initRequest(options: RequestOptions, session?: OAuth2Session): E
         const { accessTokenUrl } = requestContext;
 
         const settings: ExtendedRequestOptionsInit = {
+            ...ropt,
             method: "POST",
             data: param,
+            responseType: "json",
             requestType: "form",
-            headers: { Authorization: clientSession.getClientTokenHeaderValue() }
+            headers: { 
+                "Authorization": clientSession.getClientTokenHeaderValue() ,
+                "Accept": "application/json"
+            },
+            skipAuth: true
         };
-        const s = { ...settings, ...ropt, skipAuth: true } as ExtendedRequestOptionsInit;
 
-        return request<OAuth2AccessToken & ApplicationError>(accessTokenUrl, s);
+        return request<OAuth2AccessToken & ApplicationError>(accessTokenUrl, settings);
     };
     
     req.checkToken = async (ropt?: OAuth2RequestOptions & { tokenValue?: string }) => {
         const { checkTokenUrl, session: current } = requestContext;
 
         const settings: ExtendedRequestOptionsInit = {
+            ...ropt,
             method: "GET",
-            headers: { Authorization: clientSession.getClientTokenHeaderValue() }
+            responseType: "json",
+            headers: { 
+                "Authorization": clientSession.getClientTokenHeaderValue() ,
+                "Accept": "application/json"
+            },
+            skipAuth: true
         };
-        const s = { ...settings, ...ropt, skipAuth: true } as ExtendedRequestOptionsInit;
         const inputToken = (ropt || {}).tokenValue;
         const token = inputToken || (current && current.accessToken ? current.accessToken.access_token : "");
         if (token.length) {
@@ -220,7 +236,7 @@ export function initRequest(options: RequestOptions, session?: OAuth2Session): E
             };
             return { response: { ok: true }, data: r } as RequestResponse<CheckTokenResult>;
         }
-        return await request<CheckTokenResult & ApplicationError>(`${checkTokenUrl}?token=${token}`, s);
+        return await request<CheckTokenResult & ApplicationError>(`${checkTokenUrl}?token=${token}`, settings);
     };
 
     return req;
