@@ -65,7 +65,9 @@ const handleError = (error: ResponseError, options: RequestOptions, skipNotify?:
         if (!skip && options.toast) {
             options.toast.error(e.error_description);
         }
-        return { ...error, data: e };
+        const res = { ...response, ok: false };
+        
+        return { ...error, response: res, data: e };
     } else {
         const clientError = {
             data: {
