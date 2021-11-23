@@ -7,7 +7,7 @@ import {
     RequestResponse
 } from "umi-request";
 import { RefreshTokenParam, OAuth2AccessToken, GrantTypes, LoginParam, CheckTokenResult } from "../oauth2";
-import { ErrorContext, CustomErrorHandler, RequestOptions, RequestContext } from "./types";
+import { ErrorContext, CustomErrorHandler, RequestOptions, RequestContext, HttpResponse } from "./types";
 import { OAuth2Session, ApplicationError } from "../core";
 import { clientSession } from "../oauth2/session";
 import { isNotNullOrBlankString } from "../utils";
@@ -83,15 +83,15 @@ const handleError = (error: ResponseError, options: RequestOptions, skipNotify?:
 
 export interface ExtendedRequestMethod<R = true> extends RequestMethod<R> {
     <T = any>(url: string, options?: ExtendedRequestOptionsInit): R extends true
-        ? Promise<RequestResponse<T & ApplicationError>>
+        ? Promise<HttpResponse<T>>
         : Promise<T | ApplicationError>;
     login: (
         param: LoginParam,
         options?: OAuth2RequestOptions
-    ) => Promise<RequestResponse<OAuth2AccessToken & ApplicationError>>;
+    ) => Promise<HttpResponse<OAuth2AccessToken>>;
     checkToken: (
         options?: OAuth2RequestOptions & { tokenValue?: string }
-    ) => Promise<RequestResponse<CheckTokenResult & ApplicationError>>;
+    ) => Promise<HttpResponse<CheckTokenResult>>;
 }
 
 export interface ExtendedRequestOptionsInit extends RequestOptionsInit {
@@ -195,7 +195,7 @@ export function initRequest(options: RequestOptions, session?: OAuth2Session): E
 
         return request<OAuth2AccessToken & ApplicationError>(accessTokenUrl, s);
     };
-
+    
     req.checkToken = async (ropt?: OAuth2RequestOptions & { tokenValue?: string }) => {
         const { checkTokenUrl, session: current } = requestContext;
 
@@ -226,4 +226,26 @@ export function initRequest(options: RequestOptions, session?: OAuth2Session): E
     return req;
 }
 
+
+export function makeFailedResponseWithError(err: ApplicationError): HttpResponse<any> {
+    const r: HttpResponse<any> = {
+        data: err,
+        response: {
+            ok: false,
+            status: 200
+        } as any
+    };
+    return r;
+}
+
+export function makeSucceedResponseWithData<T = any>(data: T): HttpResponse<T> {
+    const r: HttpResponse<T> = {
+        data,
+        response: {
+            ok: true,
+            status: 200
+        } as any
+    };
+    return r;
+}
 
