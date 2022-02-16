@@ -34,7 +34,7 @@ export class OssUtils {
         const url = (serverBaseUrl || "").trim();
         const base = url.endsWith("/") ? url.substr(0, url.length - 1) : url;
         const options: OssOptions = {
-            configURL: `${base}/aliyun/oss/cnf`,
+            configURL: `${base}/aliyun/cnf`,
             stsTokenURL: `${base}/aliyun/token`,
             genUrl: `${base}/aliyun/oss/temp-url`
         };
